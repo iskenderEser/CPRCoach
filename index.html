@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FAST CPR KOÇU</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#111;
+      --muted:#666;
+      --border:#e6e6e6;
+      --soft:#fafafa;
+      --accent:#0b5fff;
+      --ok:#137333;
+      --warn:#b06000;
+      --bad:#b3261e;
+      --shadow: 0 10px 30px rgba(0,0,0,.06);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background:var(--bg);
+      color:var(--text);
+      padding:20px 14px 60px;
+    }
+    .container{ max-width:900px; margin:0 auto; }
+    header{
+      display:flex; gap:12px; align-items:flex-start; justify-content:space-between;
+      flex-wrap:wrap; margin-bottom:14px;
+    }
+    h1{ font-size:18px; margin:0; line-height:1.25; }
+    .sub{
+      color:var(--muted); margin-top:6px; font-size:13px; line-height:1.4; max-width:820px;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
+      border:1px solid var(--border); border-radius:999px; background:var(--soft);
+      font-size:12px; color:var(--muted); white-space:nowrap;
+    }
+    .card{
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      background:#fff;
+      box-shadow:var(--shadow);
+      padding:12px;
+    }
+    .hint{ color:var(--muted); font-size:12px; line-height:1.4; margin:0 0 10px; }
+
+    label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px; }
+    textarea{
+      width:100%; min-height:70px; resize:vertical;
+      padding:10px; border:1px solid var(--border); border-radius:12px;
+      font-family: var(--sans); font-size:14px; line-height:1.35; outline:none;
+    }
+    textarea:focus{ border-color: rgba(11,95,255,.55); box-shadow:0 0 0 4px rgba(11,95,255,.12); }
+    textarea[disabled]{ background:#f5f5f5; color:#777; }
+
+    /* ✅ İSTEDİĞİN: Özellik + Avantaj DAİMA ALT ALTA */
+    .two{ display:grid; grid-template-columns:1fr; gap:12px; }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+
+    .btn{
+      appearance:none; border:1px solid rgba(0,0,0,.1);
+      background:var(--accent); color:#fff; padding:10px 12px;
+      border-radius:12px; font-weight:700; cursor:pointer; font-size:13px;
+    }
+    .btn.secondary{ background:#fff; color:var(--text); border-color: var(--border); }
+    .btn.ghost{ background:var(--soft); color:var(--text); border-color: var(--border); font-weight:700; }
+    .btn.small{ padding:8px 10px; font-size:12px; border-radius:10px; }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .tag{ font-family:var(--mono); font-size:12px; color:var(--muted); }
+
+    .hr{ height:1px; background:var(--border); margin:14px 0; }
+    .footerNote{ margin-top:14px; color:var(--muted); font-size:12px; line-height:1.45; }
+
+    .fieldTools{ display:flex; justify-content:flex-end; margin-top:6px; }
+
+    .scorebox{
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:var(--soft);
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .status{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px; padding:6px 10px;
+      border-radius:999px; font-size:12px; border:1px solid var(--border); background:#fff;
+    }
+    .badge.ok{ border-color: rgba(19,115,51,.25); background: rgba(19,115,51,.06); color: var(--ok); }
+    .badge.warn{ border-color: rgba(176,96,0,.25); background: rgba(176,96,0,.06); color: var(--warn); }
+    .badge.bad{ border-color: rgba(179,38,30,.25); background: rgba(179,38,30,.06); color: var(--bad); }
+
+    .meter{ height:10px; border-radius:999px; background:#eaeaea; overflow:hidden; width:100%; margin-top:6px; }
+    .bar{ height:100%; width:0%; background: var(--accent); }
+
+    .feedback{
+      border-top:1px dashed var(--border);
+      padding-top:10px;
+      color:var(--text);
+      font-size:13px;
+      line-height:1.45;
+    }
+    .feedback ul{ margin:8px 0 0 18px; padding:0; }
+
+    /* Accordion */
+    details.acc{
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      background:#fff;
+      overflow:hidden;
+    }
+    details.acc + details.acc{ margin-top:12px; }
+    details.acc[open]{ box-shadow:var(--shadow); }
+
+    details.acc summary{
+      list-style:none;
+      cursor:pointer;
+      padding:12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      user-select:none;
+      background:#fff;
+    }
+    details.acc summary::-webkit-details-marker{ display:none; }
+
+    .accTitle{ display:flex; flex-direction:column; gap:2px; }
+    .accTitle b{ font-size:14px; }
+    .accTitle span{ font-size:12px; color:var(--muted); }
+
+    .accMeta{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+    .lock{
+      font-size:12px; color:var(--muted);
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid var(--border); background:var(--soft);
+      white-space:nowrap;
+    }
+    .accBody{ padding:12px; border-top:1px solid var(--border); background:#fff; }
+
+    .sectionTitle{
+      font-size:14px; font-weight:800; margin:10px 0 6px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div>
+      <h1>FAST CPR KOÇU</h1>
+      <p class="sub">
+        1) Önce <b>Temel CPR (stilsiz)</b> yazılır ve yalnızca CPR yapısı doğrulanır. <br/>
+        2) CPR “geçti” olunca <b>stil panelleri</b> aktif olur. Her stile göre adapte edip kontrol edersin.
+      </p>
+    </div>
+    <div class="pill">
+      <span>✅ Mobil odaklı</span>
+      <span class="tag">index.html</span>
+    </div>
+  </header>
+
+  <div class="card">
+    <!-- Base CPR Accordion -->
+    <details class="acc" data-acc="base" id="acc_base" open>
+      <summary>
+        <div class="accTitle">
+          <b>1) Temel CPR (Stilsiz)</b>
+          <span>Sadece CPR yapısı kontrol edilir. CPR ≥ 13 olunca stiller aktifleşir.</span>
+        </div>
+        <div class="accMeta">
+          <span class="lock" id="lock_base">🟦 Açık</span>
+          <span class="tag" id="mini_base">CPR: —</span>
+        </div>
+      </summary>
+
+      <div class="accBody">
+        <p class="hint">Bu bölümde <b>stil değerlendirmesi yapılmaz</b>. Amaç: CPR iskeleti doğru mu?</p>
+
+        <label for="base_claim">Claim (Problem / Etki)</label>
+        <textarea id="base_claim" placeholder="Örn: ... kültür–antibiyogram sonucunu beklemek her zaman mümkün olmayabilir."></textarea>
+        <div class="fieldTools"><button class="btn ghost small" id="clear_base_claim">Temizle</button></div>
+
+        <div class="two">
+          <div>
+            <label for="base_feat">Proposition — Özellik</label>
+            <textarea id="base_feat" placeholder="Örn: ...geniş spektrum / yarılanma ömrü / ambalaj..."></textarea>
+            <div class="fieldTools"><button class="btn ghost small" id="clear_base_feat">Temizle</button></div>
+          </div>
+          <div>
+            <label for="base_adv">Proposition — Avantaj</label>
+            <textarea id="base_adv" placeholder="Örn: ...benzerlerine göre ... sağlar..."></textarea>
+            <div class="fieldTools"><button class="btn ghost small" id="clear_base_adv">Temizle</button></div>
+          </div>
+        </div>
+
+        <label for="base_ben">Proposition — Fayda</label>
+        <textarea id="base_ben" placeholder="Örn: ...bu sayede / böylece..."></textarea>
+        <div class="fieldTools"><button class="btn ghost small" id="clear_base_ben">Temizle</button></div>
+
+        <label for="base_rec">Recommendation (Kapanış / Aksiyon)</label>
+        <textarea id="base_rec" placeholder="Örn: ...değerlendirir misiniz? / önerir misiniz?"></textarea>
+        <div class="fieldTools"><button class="btn ghost small" id="clear_base_rec">Temizle</button></div>
+
+        <div class="row">
+          <button class="btn" id="btnCheckBase">Temel CPR’ı Kontrol Et</button>
+          <button class="btn secondary" id="btnReset">Tümünü Sıfırla</button>
+          <span class="tag" id="gateInfo">Eşik: CPR ≥ 13/20 → Stil panelleri açılır</span>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="scorebox" id="baseResult" aria-live="polite">
+          <div class="status">
+            <span class="badge" id="baseBadge">Henüz kontrol edilmedi</span>
+            <span class="tag" id="baseScoreText">CPR: — / 20</span>
+          </div>
+          <div>
+            <div class="row" style="justify-content:space-between;margin-top:0;">
+              <span style="font-size:13px;">CPR Skoru</span>
+              <span class="tag" id="baseScoreMini">—</span>
+            </div>
+            <div class="meter"><div class="bar" id="baseBar"></div></div>
+          </div>
+          <div class="feedback" id="baseFeedback">
+            <b>Geri bildirim:</b> Temel CPR’ı kontrol etmek için yukarıdaki butona bas.
+          </div>
+        </div>
+
+        <p class="footerNote">
+          Not: Bu sürüm “kural tabanlı”dır. Ürün bazlı uyarlama için sözlükler tek noktadan güncellenebilir.
+        </p>
+      </div>
+    </details>
+
+    <div class="hr"></div>
+
+    <div class="sectionTitle">2) Stile Göre CPR Adaptasyonu (Accordion)</div>
+    <p class="hint">
+      Temel CPR geçince stiller aktifleşir. Başlığa dokun → panel açılır. Başka stile geçince önceki kapanır ama içerik korunur.
+      İçeriyi hızlandırmak için <b>“Temel CPR’ı Kopyala”</b> kullan.
+    </p>
+
+    <!-- Style Accordions -->
+    <details class="acc" data-style="activist" id="acc_activist">
+      <summary>
+        <div class="accTitle">
+          <b>Değişimci (Activist)</b>
+          <span>Hız, aksiyon, “hemen” dili</span>
+        </div>
+        <div class="accMeta">
+          <span class="lock">🔒 Kilitli</span>
+          <span class="tag" id="mini_activist">CPR: — · Stil: —</span>
+        </div>
+      </summary>
+      <div class="accBody">
+        <div class="row" style="margin-top:0;">
+          <button class="btn small ghost copyBase" disabled>Temel CPR’ı Kopyala</button>
+          <button class="btn small secondary styleCheck" disabled>Kontrol Et</button>
+          <span class="tag styleScoreLine">CPR: —/20 · Stil: —/20</span>
+        </div>
+
+        <label>Claim</label>
+        <textarea class="s_claim" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Özellik</label>
+        <textarea class="s_feat" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Avantaj</label>
+        <textarea class="s_adv" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Fayda</label>
+        <textarea class="s_ben" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Recommendation</label>
+        <textarea class="s_rec" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <div class="feedback styleFeedback">
+          <b>Geri bildirim:</b> Temel CPR onaylandıktan sonra bu panel aktifleşir.
+        </div>
+      </div>
+    </details>
+
+    <details class="acc" data-style="reflector" id="acc_reflector">
+      <summary>
+        <div class="accTitle">
+          <b>Yansıtıcı (Reflector)</b>
+          <span>Güven, veri, baskısız kapanış</span>
+        </div>
+        <div class="accMeta">
+          <span class="lock">🔒 Kilitli</span>
+          <span class="tag" id="mini_reflector">CPR: — · Stil: —</span>
+        </div>
+      </summary>
+      <div class="accBody">
+        <div class="row" style="margin-top:0;">
+          <button class="btn small ghost copyBase" disabled>Temel CPR’ı Kopyala</button>
+          <button class="btn small secondary styleCheck" disabled>Kontrol Et</button>
+          <span class="tag styleScoreLine">CPR: —/20 · Stil: —/20</span>
+        </div>
+
+        <label>Claim</label>
+        <textarea class="s_claim" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Özellik</label>
+        <textarea class="s_feat" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Avantaj</label>
+        <textarea class="s_adv" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Fayda</label>
+        <textarea class="s_ben" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Recommendation</label>
+        <textarea class="s_rec" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <div class="feedback styleFeedback">
+          <b>Geri bildirim:</b> Temel CPR onaylandıktan sonra bu panel aktifleşir.
+        </div>
+      </div>
+    </details>
+
+    <details class="acc" data-style="theorist" id="acc_theorist">
+      <summary>
+        <div class="accTitle">
+          <b>Kuramcı (Theorist)</b>
+          <span>Çerçeve, mekanizma, tutarlılık</span>
+        </div>
+        <div class="accMeta">
+          <span class="lock">🔒 Kilitli</span>
+          <span class="tag" id="mini_theorist">CPR: — · Stil: —</span>
+        </div>
+      </summary>
+      <div class="accBody">
+        <div class="row" style="margin-top:0;">
+          <button class="btn small ghost copyBase" disabled>Temel CPR’ı Kopyala</button>
+          <button class="btn small secondary styleCheck" disabled>Kontrol Et</button>
+          <span class="tag styleScoreLine">CPR: —/20 · Stil: —/20</span>
+        </div>
+
+        <label>Claim</label>
+        <textarea class="s_claim" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Özellik</label>
+        <textarea class="s_feat" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Avantaj</label>
+        <textarea class="s_adv" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Fayda</label>
+        <textarea class="s_ben" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Recommendation</label>
+        <textarea class="s_rec" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <div class="feedback styleFeedback">
+          <b>Geri bildirim:</b> Temel CPR onaylandıktan sonra bu panel aktifleşir.
+        </div>
+      </div>
+    </details>
+
+    <details class="acc" data-style="pragmatist" id="acc_pragmatist">
+      <summary>
+        <div class="accTitle">
+          <b>Uygulamacı (Pragmatist)</b>
+          <span>Uygulanabilirlik, iş akışı, “nasıl?”</span>
+        </div>
+        <div class="accMeta">
+          <span class="lock">🔒 Kilitli</span>
+          <span class="tag" id="mini_pragmatist">CPR: — · Stil: —</span>
+        </div>
+      </summary>
+      <div class="accBody">
+        <div class="row" style="margin-top:0;">
+          <button class="btn small ghost copyBase" disabled>Temel CPR’ı Kopyala</button>
+          <button class="btn small secondary styleCheck" disabled>Kontrol Et</button>
+          <span class="tag styleScoreLine">CPR: —/20 · Stil: —/20</span>
+        </div>
+
+        <label>Claim</label>
+        <textarea class="s_claim" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Özellik</label>
+        <textarea class="s_feat" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Avantaj</label>
+        <textarea class="s_adv" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Fayda</label>
+        <textarea class="s_ben" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <label>Recommendation</label>
+        <textarea class="s_rec" disabled></textarea>
+        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
+
+        <div class="feedback styleFeedback">
+          <b>Geri bildirim:</b> Temel CPR onaylandıktan sonra bu panel aktifleşir.
+        </div>
+      </div>
+    </details>
+
+    <p class="footerNote">
+      Mobil pratik: Temel CPR’ı geç → Temel panel kapanır → stile gir → “Temel CPR’ı Kopyala” → sadece gerekli kelimeleri değiştir → kontrol et.
+    </p>
+  </div>
+</div>
+
+<script>
+(function(){
+  const norm = (s) => (s || "")
+    .toLowerCase()
+    .replaceAll("İ","i").replaceAll("I","i").replaceAll("ı","i")
+    .replace(/\s+/g," ")
+    .trim();
+
+  const includesAny = (text, arr) => arr.some(x => text.includes(x));
+  const countMatches = (text, terms) => terms.reduce((acc, t) => acc + (text.includes(t) ? 1 : 0), 0);
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+
+  function scoreToLevel(score, max){
+    const pct = (score / max) * 100;
+    if (pct >= 85) return {label:"A-ROSS Seviyesi", cls:"ok"};
+    if (pct >= 65) return {label:"İyi", cls:"warn"};
+    return {label:"Geliştirilmeli", cls:"bad"};
+  }
+
+  const cprLex = {
+    claimPositive: [
+      "beklemek","mümkün olmayabilir","risk","belirsiz","zorlaş","süreklilik","uyum","gecik",
+      "stabilite","hijyen","ısı","ışık","nem","dalgalan","öngörü","etki","komplikasyon"
+    ],
+    claimNegative: [
+      "geniş spektrum","yarılanma ömrü","protein","blister","%","mg","tok karnına","günde"
+    ],
+    recPositive: [
+      "önerir misiniz","değerlendirir misiniz","düşünür müsünüz","reçete eder misiniz","başlamayı","tercih eder misiniz"
+    ],
+    recNegative: ["en iyisi","mucize","kesin","garanti"]
+  };
+
+  function scoreClaim(claim){
+    const t = norm(claim);
+    let s = 0;
+    if (includesAny(t, cprLex.claimPositive)) s += 1;
+    if (includesAny(t, ["hasta","hastalar","başvuran","enfeksiyon","solunum","günlük","kullanım","bazı","durum","olduğunda"])) s += 1;
+    if (includesAny(t, ["risk","süreklilik","öngörü","uyum","stabil","azalt","art","boz"])) s += 1;
+    if (includesAny(t, cprLex.claimNegative)) s -= 1;
+    return clamp(s, 0, 4);
+  }
+
+  function scoreProp(feat, adv, ben){
+    const f = norm(feat), a = norm(adv), b = norm(ben);
+    let s = 0;
+
+    if (f.length >= 18) s += 1;
+    if (includesAny(f, ["%","mg","saat","yarılanma","ambalaj","blister","spektrum","protein"])) s += 1;
+
+    if (includesAny(a, ["sayesinde","göre","daha","sağlar","kolaylaştır","üstünlük","korur"])) s += 2;
+    else if (a.length >= 18) s += 1;
+
+    if (includesAny(b, ["bu sayede","böylece"])) s += 1;
+    if (includesAny(b, ["hasta","hastalar","iyileş","uyum","taşı","devam","güven","rahat"])) s += 1;
+
+    return clamp(s, 0, 6);
+  }
+
+  function scoreRec(rec, claim){
+    const r = norm(rec);
+    const c = norm(claim);
+    let s = 0;
+
+    if (includesAny(r, cprLex.recPositive)) s += 2;
+    if (includesAny(r, ["bu hasta","bu hastalar","aktif yaşantı","sye","solunum","ambalaj","uyum","süreklilik"])) s += 1;
+    if (r.length <= 180 && r.length >= 12) s += 1;
+
+    if (includesAny(r, cprLex.recNegative)) s -= 1;
+    if (includesAny(c, ["beklemek","gecik","mümkün olmayabilir"]) && includesAny(r, ["bekleyelim","sonra"])) s -= 1;
+
+    return clamp(s, 0, 4);
+  }
+
+  function scoreCoherence(claim, feat, adv, ben, rec){
+    let s = 0;
+    const claimKey = norm(claim);
+    const propKey = norm([feat,adv,ben].join(" "));
+    const recKey = norm(rec);
+
+    const shared = [
+      ["uyum","uyum"],["stabil","stabil"],["hijyen","hijyen"],["bekle","ampirik"],
+      ["süreklilik","süre"],["öngörü","stabil"],["taşı","ambalaj"]
+    ].filter(([x,y]) => claimKey.includes(x) && propKey.includes(y)).length;
+
+    if (shared >= 1) s += 2;
+    else if (propKey.length > 0) s += 1;
+
+    if (claimKey && recKey){
+      if (countMatches(recKey, ["önerir misiniz","değerlendirir misiniz","düşünür müsünüz","reçete eder misiniz"]) >= 1) s += 2;
+      else s += 1;
+    }
+
+    const claimHasProblem = includesAny(claimKey, cprLex.claimPositive);
+    const propHasFeature = includesAny(propKey, ["spektrum","yarılanma","protein","ambalaj","blister","%","saat"]);
+    if (claimHasProblem && propHasFeature) s += 2;
+    else if (claimHasProblem || propHasFeature) s += 1;
+
+    return clamp(s, 0, 6);
+  }
+
+  function scoreCPR(block){
+    const c = scoreClaim(block.claim);
+    const p = scoreProp(block.feat, block.adv, block.ben);
+    const r = scoreRec(block.rec, block.claim);
+    const coh = scoreCoherence(block.claim, block.feat, block.adv, block.ben, block.rec);
+    const total = c + p + r + coh;
+    return { total, parts: { claim:c, prop:p, rec:r, coherence:coh } };
+  }
+
+  const styleRubrics = {
+    activist: {
+      name: "Değişimci (Activist)",
+      positive: [{t:"hemen",w:2},{t:"şimdi",w:2},{t:"başlayalım",w:2},{t:"deneyelim",w:2},{t:"hızlı",w:1},{t:"gecikmeden",w:2},{t:"pratikte",w:1},{t:"aksiyon",w:1}],
+      negative: [{t:"mekanizma",w:1},{t:"adım adım",w:1},{t:"detaylı analiz",w:2},{t:"önce değerlendirelim",w:2}],
+      redFlags: ["önce değerlendirelim","detaylı analiz","bekleyelim"],
+      recPref: ["önerir misiniz","başlayalım","deneyelim","hemen"]
+    },
+    reflector: {
+      name: "Yansıtıcı (Reflector)",
+      positive: [{t:"değerlendir",w:2},{t:"veri",w:2},{t:"kanıt",w:2},{t:"güven",w:1},{t:"stabil",w:2},{t:"risk",w:1},{t:"karşılaştır",w:1},{t:"gözlem",w:1}],
+      negative: [{t:"hemen",w:2},{t:"şimdi",w:2},{t:"kesin",w:2},{t:"garanti",w:2}],
+      redFlags: ["hemen","kesin","garanti"],
+      recPref: ["değerlendirir misiniz","düşünür müsünüz"]
+    },
+    theorist: {
+      name: "Kuramcı (Theorist)",
+      positive: [{t:"mekanizma",w:2},{t:"çerçeve",w:2},{t:"sistematik",w:2},{t:"tutarlı",w:1},{t:"neden",w:1},{t:"sonuç",w:1},{t:"adım adım",w:2},{t:"öngörü",w:1}],
+      negative: [{t:"bence",w:2},{t:"hemen deneyelim",w:2},{t:"mucize",w:2},{t:"en iyi",w:2}],
+      redFlags: ["bence","mucize","en iyi"],
+      recPref: ["bu çerçevede","mantıklı olabilir","değerlendirir misiniz"]
+    },
+    pragmatist: {
+      name: "Uygulamacı (Pragmatist)",
+      positive: [{t:"uygulamada",w:2},{t:"pratik",w:2},{t:"kolay",w:1},{t:"rutin",w:1},{t:"iş akışı",w:2},{t:"uyum",w:2},{t:"protokol",w:1},{t:"nasıl",w:1}],
+      negative: [{t:"vizyon",w:1},{t:"ilke",w:1},{t:"soyut",w:2},{t:"mucize",w:2}],
+      redFlags: ["soyut","mucize"],
+      recPref: ["reçete eder misiniz","uygulamada","rutin","kolay"]
+    }
+  };
+
+  function scoreStyle(styleKey, block){
+    const rub = styleRubrics[styleKey];
+    const text = norm([block.claim, block.feat, block.adv, block.ben, block.rec].join(" "));
+    const rec = norm(block.rec);
+
+    const posScore = rub.positive.reduce((acc, it)=> acc + (text.includes(it.t) ? it.w : 0), 0);
+    const negScore = rub.negative.reduce((acc, it)=> acc + (text.includes(it.t) ? it.w : 0), 0);
+    let tone = clamp(Math.round((posScore - negScore) + 2), 0, 5);
+
+    const evidenceTerms = rub.positive.filter(it => ["veri","kanıt","mekanizma","çerçeve","uygulamada","iş akışı","stabil","uyum"].some(k => it.t.includes(k)));
+    const evHits = evidenceTerms.reduce((acc,it)=> acc + (text.includes(it.t) ? 1 : 0), 0);
+    let evidence = clamp(evHits, 0, 5);
+
+    let flow = 3;
+    const len = text.length;
+    if (len < 220) flow += 1;
+    if (len < 160) flow += 1;
+    if (len > 520) flow -= 2;
+    flow = clamp(flow, 0, 5);
+
+    const recHit = rub.recPref.some(t => rec.includes(t));
+    let recScore = recHit ? 5 : (includesAny(rec, ["önerir misiniz","değerlendirir misiniz","düşünür müsünüz","reçete eder misiniz"]) ? 3 : 1);
+
+    const flags = rub.redFlags.filter(f => text.includes(f));
+    const total = clamp(tone + evidence + flow + recScore, 0, 20);
+
+    const suggestions = [];
+    if (!recHit) suggestions.push(`Kapanış dilini ${rub.name} için daha uyumlu yap (örn: ${rub.recPref.slice(0,2).map(x=>`“${x}”`).join(", ")}).`);
+    if (tone <= 2) suggestions.push(`Dil/ton sinyali zayıf. ${rub.name} için anahtar ipuçlarını artır.`);
+    if (evidence <= 1) suggestions.push(`Kanıt/çıpa sinyali düşük. ${rub.name} beklentisine uygun bir gerekçe/çıpa ekle.`);
+    if (flags.length) suggestions.push(`Kırmızı bayrak: ${flags.map(x=>`“${x}”`).join(", ")} — tonu yumuşatmayı düşün.`);
+
+    return { total, parts:{tone,evidence,flow,rec:recScore}, flags, suggestions };
+  }
+
+  const base = {
+    acc: document.getElementById("acc_base"),
+    lock: document.getElementById("lock_base"),
+    mini: document.getElementById("mini_base"),
+    claim: document.getElementById("base_claim"),
+    feat: document.getElementById("base_feat"),
+    adv: document.getElementById("base_adv"),
+    ben: document.getElementById("base_ben"),
+    rec: document.getElementById("base_rec"),
+    btn: document.getElementById("btnCheckBase"),
+    reset: document.getElementById("btnReset"),
+    badge: document.getElementById("baseBadge"),
+    scoreText: document.getElementById("baseScoreText"),
+    scoreMini: document.getElementById("baseScoreMini"),
+    bar: document.getElementById("baseBar"),
+    feedback: document.getElementById("baseFeedback"),
+    gateInfo: document.getElementById("gateInfo"),
+  };
+
+  const accs = Array.from(document.querySelectorAll("details.acc"));
+  const styleAccs = Array.from(document.querySelectorAll("details.acc[data-style]"));
+  let basePassed = false;
+
+  function setBadge(el, cls, text){
+    el.className = "badge " + (cls || "");
+    el.textContent = text;
+  }
+  function setBar(barEl, score, max){
+    const pct = clamp(Math.round((score/max)*100), 0, 100);
+    barEl.style.width = pct + "%";
+  }
+
+  function enableStyles(enable){
+    basePassed = enable;
+    styleAccs.forEach(panel => {
+      const lock = panel.querySelector(".lock");
+      const copyBtn = panel.querySelector(".copyBase");
+      const checkBtn = panel.querySelector(".styleCheck");
+      const clearBtns = panel.querySelectorAll(".clearField");
+      const areas = panel.querySelectorAll("textarea");
+
+      areas.forEach(t => t.disabled = !enable);
+      copyBtn.disabled = !enable;
+      checkBtn.disabled = !enable;
+      clearBtns.forEach(b => b.disabled = !enable);
+
+      lock.textContent = enable ? "🔓 Aktif" : "🔒 Kilitli";
+      lock.style.background = enable ? "rgba(19,115,51,.06)" : "var(--soft)";
+      lock.style.borderColor = enable ? "rgba(19,115,51,.25)" : "var(--border)";
+      lock.style.color = enable ? "var(--ok)" : "var(--muted)";
+
+      if (!enable) panel.open = false;
+    });
+  }
+
+  // Single-open accordion across ALL (base + styles)
+  accs.forEach(d => {
+    d.addEventListener("toggle", () => {
+      if (d.open){
+        accs.forEach(other => { if (other !== d) other.open = false; });
+        d.scrollIntoView({behavior:"smooth", block:"start"});
+      }
+    });
+  });
+
+  function getBaseBlock(){
+    return { claim: base.claim.value, feat: base.feat.value, adv: base.adv.value, ben: base.ben.value, rec: base.rec.value };
+  }
+
+  function baseFeedbackFrom(scoreObj){
+    const {parts} = scoreObj;
+    const tips = [];
+    if (parts.claim <= 2) tips.push("Claim’de problem/etki daha belirgin olmalı (özellik cümlesine kayma varsa geri al).");
+    if (parts.prop <= 3) tips.push("Proposition zinciri zayıf: Özellik → Avantaj → Fayda sırasını net ayır.");
+    if (parts.rec <= 2) tips.push("Recommendation aksiyon dilini netleştir (önerir misiniz / değerlendirir misiniz vb.).");
+    if (parts.coherence <= 3) tips.push("Bütünlük: Claim ile Proposition/Recommendation aynı ihtiyacı çözmeli (köprü kelimeler ekle).");
+    if (!tips.length) tips.push("Temel CPR yapısal olarak güçlü. Şimdi stillere göre adaptasyona geçebilirsin.");
+    return `
+      <b>Geri bildirim:</b>
+      <ul>${tips.map(t=>`<li>${t}</li>`).join("")}</ul>
+      <div style="margin-top:8px;color:var(--muted);font-size:12px;">
+        Parçalar — Claim: ${parts.claim}/4 · Proposition: ${parts.prop}/6 · Recommendation: ${parts.rec}/4 · Bütünlük: ${parts.coherence}/6
+      </div>
+    `;
+  }
+
+  // Clear buttons (base)
+  [
+    ["clear_base_claim", base.claim],
+    ["clear_base_feat", base.feat],
+    ["clear_base_adv", base.adv],
+    ["clear_base_ben", base.ben],
+    ["clear_base_rec", base.rec],
+  ].forEach(([id, el]) => {
+    document.getElementById(id).addEventListener("click", () => { el.value = ""; el.focus(); });
+  });
+
+  base.btn.addEventListener("click", () => {
+    const scored = scoreCPR(getBaseBlock());
+    base.scoreText.textContent = `CPR: ${scored.total} / 20`;
+    base.scoreMini.textContent = `${scored.total}/20`;
+    base.mini.textContent = `CPR: ${scored.total}/20`;
+    setBar(base.bar, scored.total, 20);
+
+    const lvl = scoreToLevel(scored.total, 20);
+
+    if (scored.total >= 13){
+      setBadge(base.badge, "ok", `Geçti · ${lvl.label}`);
+      base.feedback.innerHTML = baseFeedbackFrom(scored);
+
+      base.lock.textContent = "✅ Tamam";
+      base.lock.style.background = "rgba(19,115,51,.06)";
+      base.lock.style.borderColor = "rgba(19,115,51,.25)";
+      base.lock.style.color = "var(--ok)";
+
+      enableStyles(true);
+      base.gateInfo.textContent = "Stiller aktif. Bir stil aç → Temel CPR’ı kopyala → sadece gerekli kelimeleri değiştir.";
+
+      const first = document.getElementById("acc_activist");
+      base.acc.open = false;
+      first.open = true;
+      first.scrollIntoView({behavior:"smooth", block:"start"});
+    } else {
+      setBadge(base.badge, "bad", "Geçmedi · CPR’ı güçlendir");
+      base.feedback.innerHTML = baseFeedbackFrom(scored);
+
+      base.lock.textContent = "🟦 Açık";
+      base.lock.style.background = "var(--soft)";
+      base.lock.style.borderColor = "var(--border)";
+      base.lock.style.color = "var(--muted)";
+
+      enableStyles(false);
+      base.gateInfo.textContent = "Eşik: CPR ≥ 13/20 → Stil panelleri açılır";
+    }
+  });
+
+  base.reset.addEventListener("click", () => {
+    [base.claim, base.feat, base.adv, base.ben, base.rec].forEach(x => x.value = "");
+    setBadge(base.badge, "", "Henüz kontrol edilmedi");
+    base.scoreText.textContent = "CPR: — / 20";
+    base.scoreMini.textContent = "—";
+    base.mini.textContent = "CPR: —";
+    base.bar.style.width = "0%";
+    base.feedback.innerHTML = "<b>Geri bildirim:</b> Temel CPR’ı kontrol etmek için yukarıdaki butona bas.";
+    base.gateInfo.textContent = "Eşik: CPR ≥ 13/20 → Stil panelleri açılır";
+
+    base.lock.textContent = "🟦 Açık";
+    base.lock.style.background = "var(--soft)";
+    base.lock.style.borderColor = "var(--border)";
+    base.lock.style.color = "var(--muted)";
+
+    styleAccs.forEach(panel => {
+      panel.querySelectorAll("textarea").forEach(t => t.value = "");
+      panel.querySelector(".styleScoreLine").textContent = "CPR: —/20 · Stil: —/20";
+      panel.querySelector(".styleFeedback").innerHTML = "<b>Geri bildirim:</b> Temel CPR onaylandıktan sonra bu panel aktifleşir.";
+      const mini = document.getElementById("mini_" + panel.dataset.style);
+      if (mini) mini.textContent = "CPR: — · Stil: —";
+      panel.open = false;
+      const lock = panel.querySelector(".lock");
+      lock.textContent = "🔒 Kilitli";
+      lock.style.background = "var(--soft)";
+      lock.style.borderColor = "var(--border)";
+      lock.style.color = "var(--muted)";
+    });
+
+    enableStyles(false);
+    basePassed = false;
+
+    base.acc.open = true;
+    base.acc.scrollIntoView({behavior:"smooth", block:"start"});
+  });
+
+  function readStyleBlock(panel){
+    return {
+      claim: panel.querySelector(".s_claim").value,
+      feat: panel.querySelector(".s_feat").value,
+      adv: panel.querySelector(".s_adv").value,
+      ben: panel.querySelector(".s_ben").value,
+      rec: panel.querySelector(".s_rec").value
+    };
+  }
+
+  function styleFeedback(styleKey, cprScore, styleScore){
+    const tips = [];
+    if (cprScore.total < 13) tips.push("Önce CPR yapısını güçlendir (Claim/Ö-A-F/Recommendation net olmalı).");
+    else tips.push("CPR yapısı yeterli. Şimdi stil uyumunu belirginleştir.");
+
+    if (styleScore.suggestions.length) tips.push(...styleScore.suggestions.slice(0,3));
+    else tips.push("Stil uyumu güçlü görünüyor. Küçük dokunuşlarla daha da belirginleşebilir.");
+
+    const coach = {
+      activist: "Activist: zaman/aksiyon baskısı + net hareket çağrısı.",
+      pragmatist: "Pragmatist: ‘nasıl uygulanır?’ + iş akışı kolaylığı.",
+      reflector: "Reflector: baskısız kapanış + güven/kanıt çıpası.",
+      theorist: "Theorist: 1 cümlelik ‘neden/çerçeve’ ipucu çok güçlendirir."
+    };
+
+    return `
+      <b>Geri bildirim:</b>
+      <ul>${tips.map(t=>`<li>${t}</li>`).join("")}</ul>
+      <div style="margin-top:8px;color:var(--muted);font-size:12px;">Koç notu: ${coach[styleKey]}</div>
+      <div style="margin-top:8px;color:var(--muted);font-size:12px;">
+        Rubrik parçaları — Ton: ${styleScore.parts.tone}/5 · Kanıt: ${styleScore.parts.evidence}/5 · Akış: ${styleScore.parts.flow}/5 · Kapanış: ${styleScore.parts.rec}/5
+      </div>
+    `;
+  }
+
+  styleAccs.forEach(panel => {
+    const styleKey = panel.dataset.style;
+    const copyBtn = panel.querySelector(".copyBase");
+    const checkBtn = panel.querySelector(".styleCheck");
+    const fb = panel.querySelector(".styleFeedback");
+    const scoreLine = panel.querySelector(".styleScoreLine");
+    const mini = document.getElementById("mini_" + styleKey);
+
+    copyBtn.addEventListener("click", () => {
+      if (!basePassed) return;
+      const b = getBaseBlock();
+      panel.querySelector(".s_claim").value = b.claim;
+      panel.querySelector(".s_feat").value  = b.feat;
+      panel.querySelector(".s_adv").value   = b.adv;
+      panel.querySelector(".s_ben").value   = b.ben;
+      panel.querySelector(".s_rec").value   = b.rec;
+      fb.innerHTML = "<b>Geri bildirim:</b> Temel CPR kopyalandı. Şimdi sadece stil kapılarına göre gerekli yerleri değiştir.";
+      panel.querySelector(".s_claim").focus();
+    });
+
+    const fields = Array.from(panel.querySelectorAll("textarea"));
+    const clearBtns = Array.from(panel.querySelectorAll(".clearField"));
+    clearBtns.forEach((btn, idx) => {
+      btn.addEventListener("click", () => {
+        if (!basePassed) return;
+        fields[idx].value = "";
+        fields[idx].focus();
+      });
+    });
+
+    checkBtn.addEventListener("click", () => {
+      if (!basePassed){
+        fb.innerHTML = "<b>Geri bildirim:</b> Önce Temel CPR’ı onaylat.";
+        return;
+      }
+      const block = readStyleBlock(panel);
+      const cpr = scoreCPR(block);
+      const sty = scoreStyle(styleKey, block);
+
+      scoreLine.textContent = `CPR: ${cpr.total}/20 · Stil: ${sty.total}/20`;
+      if (mini) mini.textContent = `CPR: ${cpr.total} · Stil: ${sty.total}`;
+
+      const cLevel = scoreToLevel(cpr.total, 20);
+      const sLevel = scoreToLevel(sty.total, 20);
+
+      fb.innerHTML = `
+        <div class="status" style="margin-bottom:8px;">
+          <span class="badge ${cLevel.cls}">CPR · ${cLevel.label}</span>
+          <span class="badge ${sLevel.cls}">${styleRubrics[styleKey].name} · ${sLevel.label}</span>
+        </div>
+      ` + styleFeedback(styleKey, cpr, sty);
+    });
+  });
+
+  enableStyles(false);
+})();
+</script>
+</body>
+</html>
