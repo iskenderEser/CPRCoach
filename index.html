@@ -2,9 +2,13 @@
 <html lang="tr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" />
   <title>FAST CPR KOÇU</title>
+  <script src="https://unpkg.com/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://unpkg.com/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  
   <style>
+    /* TÜM CSS KODU BURADA */
     :root{
       --bg:#ffffff;
       --text:#111;
@@ -15,10 +19,13 @@
       --ok:#137333;
       --warn:#b06000;
       --bad:#b3261e;
-      --shadow: 0 10px 30px rgba(0,0,0,.06);
+      --shadow: 0 10px 30px rgba(0,0,0,0.06);
       --radius:16px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --touch-target: 44px;
+      --mobile-padding: 12px;
+      --keyboard-safe: env(safe-area-inset-bottom, 0px);
     }
     *{box-sizing:border-box}
     body{
@@ -26,854 +33,4348 @@
       font-family:var(--sans);
       background:var(--bg);
       color:var(--text);
-      padding:20px 14px 60px;
+      padding:20px 14px calc(60px + var(--keyboard-safe));
+      padding-left: max(14px, env(safe-area-inset-left));
+      padding-right: max(14px, env(safe-area-inset-right));
     }
-    .container{ max-width:900px; margin:0 auto; }
+    
+    /* 📱 MOBİL OPTİMİZASYONU */
+    @media (max-width: 768px) {
+      body {
+        padding: var(--mobile-padding) var(--mobile-padding) calc(50px + var(--keyboard-safe));
+        font-size: 15px;
+      }
+      
+      .container {
+        max-width: 100%;
+        padding: 0;
+      }
+      
+      button, 
+      .btn,
+      [role="button"],
+      .voice-btn,
+      .mobile-toolbar button {
+        min-height: var(--touch-target);
+        min-width: var(--touch-target);
+        padding: 12px 16px !important;
+      }
+      
+      details.acc summary {
+        padding: 16px 14px;
+      }
+      
+      textarea:focus {
+        padding-bottom: calc(1em + var(--keyboard-safe));
+      }
+      
+      .mobile-toolbar {
+        display: flex !important;
+      }
+      
+      .two {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      
+      h1 {
+        font-size: 20px;
+      }
+      
+      .sub {
+        font-size: 14px;
+      }
+    }
+    
+    @media (max-width: 768px) and (orientation: landscape) {
+      body {
+        padding-top: 8px;
+        padding-bottom: 8px;
+      }
+      
+      .container {
+        max-height: 85vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      header {
+        position: sticky;
+        top: 0;
+        background: var(--bg);
+        z-index: 100;
+        padding: 8px 0;
+      }
+    }
+    
+    @media (max-width: 360px) {
+      :root {
+        --radius: 12px;
+        --mobile-padding: 10px;
+      }
+      
+      .card, .presetCard, details.acc {
+        border-radius: var(--radius);
+      }
+      
+      textarea {
+        font-size: 16px !important;
+      }
+    }
+    
+    /* =========================================== */
+    /* 📌 TÜM TEMEL CPR KARTI - TUTARLI GÖRSEL DİL */
+    /* =========================================== */
+    
+    /* 1. TÜM BÖLÜMLER İÇİN ORTAK KART STİLİ */
+    .cpr-section-card {
+      border: 2px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 18px 16px 12px 16px;
+      background: #f8fafc;
+      margin-bottom: 20px;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+    
+    /* 2. BÖLÜM BAŞLIK ETİKETLERİ */
+    .cpr-section-card::before {
+      position: absolute;
+      top: -10px;
+      left: 16px;
+      background: white;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #4b5563;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      letter-spacing: 0.02em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    /* 3. ÖZEL BÖLÜM ETİKETLERİ */
+    .cpr-section-card[data-section="claim"]::before {
+      content: "🔍 CLAIM (Problem & Etki)";
+    }
+    
+    .cpr-section-card[data-section="feature"]::before {
+      content: "⚙️ PROPOSITION - Özellik";
+    }
+    
+    .cpr-section-card[data-section="advantage"]::before {
+      content: "🏆 PROPOSITION - Avantaj";
+    }
+    
+    .cpr-section-card[data-section="benefit"]::before {
+      content: "❤️ PROPOSITION - Fayda";
+    }
+    
+    .cpr-section-card[data-section="recommendation"]::before {
+      content: "🎯 RECOMMENDATION";
+    }
+    
+    /* 4. LABEL STİLLERİ (Tüm bölümler için) */
+    .cpr-section-card label {
+      display: block;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: #111827;
+      padding-left: 0;
+    }
+    
+    /* 5. TEXTAREA STİLLERİ (Tüm bölümler için) */
+    .cpr-section-card textarea {
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 12px 40px 12px 12px;
+      font-size: 14px;
+      min-height: 80px;
+      width: 100%;
+      transition: all 0.2s;
+      line-height: 1.5;
+      resize: vertical;
+      position: relative;
+    }
+    
+    .cpr-section-card textarea:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      background: #f8fafc;
+      outline: none;
+    }
+    
+    /* 6. SES BUTONU STİLİ (Tüm bölümler için) */
+    .cpr-section-card .voice-btn {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+      z-index: 10;
+    }
+    
+    .cpr-section-card .voice-btn:hover {
+      background: #2563eb;
+      transform: scale(1.1);
+    }
+    
+    .cpr-section-card .voice-btn.listening {
+      background: #ef4444;
+      animation: pulse 1.5s infinite;
+    }
+    
+    /* Textarea wrapper */
+    .cpr-section-card .textarea-wrapper {
+      position: relative;
+    }
+    
+    /* 7. CLAIM ÖZEL STİLLERİ (Problem & Etki ayrımı) */
+    .claim-group {
+      border: none;
+      padding: 0;
+      background: transparent;
+      box-shadow: none;
+      margin-bottom: 0;
+    }
+    
+    .claim-group::before {
+      display: none;
+    }
+    
+    .claim-step {
+      position: relative;
+      padding-left: 0 !important;
+      margin-bottom: 16px;
+    }
+    
+    .claim-step::before {
+      display: none !important;
+    }
+    
+    .claim-step:last-child {
+      margin-bottom: 0;
+    }
+    
+    .claim-step.problem {
+      padding-bottom: 16px;
+      border-bottom: 1px dashed #d1d5db;
+      margin-bottom: 16px;
+    }
+    
+    /* 8. HINT BOX STİLLERİ */
+    .hint-box {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #4b5563;
+      border-left: 3px solid #94a3b8;
+      display: none;
+    }
+    
+    .hint-box.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    /* Textarea focus durumunda hint göster */
+    .cpr-section-card textarea:focus + .hint-box,
+    .cpr-section-card textarea:focus ~ .hint-box {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* 9. FIELD TOOLS STİLLERİ */
+    .fieldTools {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .fieldTools .btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      border: 1px solid #d1d5db;
+      background: white;
+      color: #4b5563;
+    }
+    
+    .fieldTools .btn:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+    
+    /* 10. İKİ KOLON DÜZENİ (Fayda & Recommendation) */
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .two > div {
+      margin-bottom: 0 !important;
+    }
+    
+    /* 11. MOBİL OPTİMİZASYON */
+    @media (max-width: 768px) {
+      .cpr-section-card {
+        padding: 14px 12px 10px 12px;
+        margin-bottom: 16px;
+        border-radius: 12px;
+      }
+      
+      .cpr-section-card::before {
+        left: 12px;
+        font-size: 10px;
+        padding: 3px 8px;
+        top: -8px;
+      }
+      
+      .cpr-section-card label {
+        font-size: 15px;
+        margin-bottom: 10px;
+      }
+      
+      .cpr-section-card textarea {
+        min-height: 75px;
+        font-size: 15px;
+        padding: 10px 40px 10px 10px;
+      }
+      
+      .cpr-section-card .voice-btn {
+        width: 32px;
+        height: 32px;
+        right: 8px;
+        bottom: 8px;
+        font-size: 14px;
+      }
+      
+      .claim-step {
+        margin-bottom: 14px;
+      }
+      
+      .claim-step.problem {
+        padding-bottom: 14px;
+        margin-bottom: 14px;
+      }
+      
+      .two {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-top: 16px;
+      }
+      
+      .hint-box {
+        font-size: 13px;
+      }
+      
+      .fieldTools {
+        margin-top: 10px;
+      }
+    }
+    
+    /* =========================================== */
+    /* 📌 DİĞER CSS KODLARI (MEVCUT KORUNDU) */
+    /* =========================================== */
+    
+    /* 📱 FAZ 1: MOBİL KLAVYE ARAÇ ÇUBUĞU */
+    .mobile-toolbar {
+      display: flex !important;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid var(--border);
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+      z-index: 1000;
+      box-shadow: 0 -2px 20px rgba(0,0,0,0.1);
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      gap: 8px;
+    }
+    
+    .mobile-toolbar button {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--soft);
+      font-size: 12px;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+    }
+    
+    .mobile-toolbar button.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    
+    /* 📱 FAZ 1: SESLİ GİRİŞ BUTONLARI */
+    .voice-btn.listening {
+      background: #b3261e !important;
+      color: white !important;
+      border-color: #b3261e !important;
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(179, 38, 30, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(179, 38, 30, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(179, 38, 30, 0); }
+    }
+    
+    /* 📱 FAZ 4: SESLİ GİRİŞ GELİŞTİRMELERİ İÇİN YENİ STİLLER */
+    .voice-indicator {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2500;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+    }
+    
+    .voice-indicator .pulse {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: voicePulse 1.2s infinite;
+    }
+    
+    @keyframes voicePulse {
+      0% { transform: scale(0.8); opacity: 0.7; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.8); opacity: 0.7; }
+    }
+    
+    .voice-feedback {
+      position: absolute;
+      bottom: 60px;
+      right: 10px;
+      background: rgba(59, 130, 246, 0.9);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+    }
+    
+    /* 📱 FAZ 2: DRAFT KAYIT SİSTEMİ CSS */
+    .draft-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      background: var(--soft);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: fixed;
+      bottom: 70px;
+      right: 15px;
+      z-index: 999;
+    }
+    
+    .draft-indicator.saved {
+      background: rgba(19, 115, 51, 0.1);
+      border-color: rgba(19, 115, 51, 0.3);
+      color: var(--ok);
+    }
+    
+    .draft-indicator:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    /* 📱 FAZ 3: BAĞLANTI DURUM GÖSTERGESİ (Connectivity Manager) */
+    .offline-status {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: var(--warn);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 10px rgba(176, 96, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    .offline-status.online {
+      background: var(--ok);
+      display: flex;
+    }
+    
+    .offline-status.offline {
+      background: var(--warn);
+      display: flex;
+    }
+    
+    .offline-status .icon {
+      font-size: 14px;
+    }
+    
+    /* 📱 FAZ 2: MOBİL BİLDİRİM ALANI */
+    #mobileNotificationArea {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3000;
+      width: 90%;
+      max-width: 400px;
+      pointer-events: none;
+    }
+    
+    .mobile-notification {
+      background: white;
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideDown 0.3s ease;
+      pointer-events: auto;
+      font-size: 13px;
+    }
+    
+    .mobile-notification.success {
+      border-left-color: var(--ok);
+      background: rgba(19, 115, 51, 0.05);
+    }
+    
+    .mobile-notification.warning {
+      border-left-color: var(--warn);
+      background: rgba(176, 96, 0, 0.05);
+    }
+    
+    .mobile-notification.error {
+      border-left-color: var(--bad);
+      background: rgba(179, 38, 30, 0.05);
+    }
+    
+    .mobile-notification.info {
+      border-left-color: var(--accent);
+      background: rgba(11, 95, 255, 0.05);
+    }
+    
+    .mobile-notification .icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    
+    .mobile-notification .close-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    
+    .mobile-notification .close-btn:hover {
+      background: rgba(0,0,0,0.05);
+    }
+    
+    @keyframes slideDown {
+      from { 
+        opacity: 0; 
+        transform: translateX(-50%) translateY(-20px); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateX(-50%) translateY(0); 
+      }
+    }
+    
+    /* 📋 FAZ 5: PDF RAPOR BUTON STİLİ */
+    .pdf-generating {
+      opacity: 0.7;
+      cursor: wait !important;
+    }
+    
+    .pdf-generating::after {
+      content: '...';
+      animation: pdfDots 1.5s infinite;
+    }
+    
+    @keyframes pdfDots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60%, 100% { content: '...'; }
+    }
+    
+    /* GENEL STİLLER (MEVCUT TASARIM KORUNDU) */
+    .container{
+      max-width:960px;
+      margin:0 auto 60px;
+    }
     header{
-      display:flex; gap:12px; align-items:flex-start; justify-content:space-between;
-      flex-wrap:wrap; margin-bottom:14px;
-    }
-    h1{ font-size:18px; margin:0; line-height:1.25; }
-    .sub{
-      color:var(--muted); margin-top:6px; font-size:13px; line-height:1.4; max-width:820px;
-    }
-    .pill{
-      display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
-      border:1px solid var(--border); border-radius:999px; background:var(--soft);
-      font-size:12px; color:var(--muted); white-space:nowrap;
-    }
-    .card{
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      background:#fff;
-      box-shadow:var(--shadow);
-      padding:12px;
-    }
-    .hint{ color:var(--muted); font-size:12px; line-height:1.4; margin:0 0 10px; }
-
-    label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px; }
-    textarea{
-      width:100%; min-height:70px; resize:vertical;
-      padding:10px; border:1px solid var(--border); border-radius:12px;
-      font-family: var(--sans); font-size:14px; line-height:1.35; outline:none;
-    }
-    textarea:focus{ border-color: rgba(11,95,255,.55); box-shadow:0 0 0 4px rgba(11,95,255,.12); }
-    textarea[disabled]{ background:#f5f5f5; color:#777; }
-
-    /* ✅ İSTEDİĞİN: Özellik + Avantaj DAİMA ALT ALTA */
-    .two{ display:grid; grid-template-columns:1fr; gap:12px; }
-
-    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
-
-    .btn{
-      appearance:none; border:1px solid rgba(0,0,0,.1);
-      background:var(--accent); color:#fff; padding:10px 12px;
-      border-radius:12px; font-weight:700; cursor:pointer; font-size:13px;
-    }
-    .btn.secondary{ background:#fff; color:var(--text); border-color: var(--border); }
-    .btn.ghost{ background:var(--soft); color:var(--text); border-color: var(--border); font-weight:700; }
-    .btn.small{ padding:8px 10px; font-size:12px; border-radius:10px; }
-    .btn:disabled{ opacity:.55; cursor:not-allowed; }
-
-    .tag{ font-family:var(--mono); font-size:12px; color:var(--muted); }
-
-    .hr{ height:1px; background:var(--border); margin:14px 0; }
-    .footerNote{ margin-top:14px; color:var(--muted); font-size:12px; line-height:1.45; }
-
-    .fieldTools{ display:flex; justify-content:flex-end; margin-top:6px; }
-
-    .scorebox{
-      border:1px solid var(--border);
-      border-radius:14px;
-      background:var(--soft);
-      padding:12px;
       display:flex;
       flex-direction:column;
-      gap:10px;
+      gap:6px;
+      margin-bottom:16px;
     }
-    .status{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .badge{
-      display:inline-flex; align-items:center; gap:8px; padding:6px 10px;
-      border-radius:999px; font-size:12px; border:1px solid var(--border); background:#fff;
+    h1{
+      font-size:22px;
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+      margin:0;
+      display:flex;
+      align-items:center;
+      gap:8px;
     }
-    .badge.ok{ border-color: rgba(19,115,51,.25); background: rgba(19,115,51,.06); color: var(--ok); }
-    .badge.warn{ border-color: rgba(176,96,0,.25); background: rgba(176,96,0,.06); color: var(--warn); }
-    .badge.bad{ border-color: rgba(179,38,30,.25); background: rgba(179,38,30,.06); color: var(--bad); }
-
-    .meter{ height:10px; border-radius:999px; background:#eaeaea; overflow:hidden; width:100%; margin-top:6px; }
-    .bar{ height:100%; width:0%; background: var(--accent); }
-
-    .feedback{
-      border-top:1px dashed var(--border);
-      padding-top:10px;
-      color:var(--text);
+    h1 span.icon{
+      font-size:22px;
+    }
+    .sub{
       font-size:13px;
-      line-height:1.45;
+      color:var(--muted);
     }
-    .feedback ul{ margin:8px 0 0 18px; padding:0; }
-
-    /* Accordion */
-    details.acc{
+    .tagline{
+      margin-top:4px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .badgeRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:8px;
+    }
+    .pill{
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      background:var(--soft);
       border:1px solid var(--border);
-      border-radius:var(--radius);
-      background:#fff;
-      overflow:hidden;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
     }
-    details.acc + details.acc{ margin-top:12px; }
-    details.acc[open]{ box-shadow:var(--shadow); }
-
-    details.acc summary{
-      list-style:none;
+    .pill span{
+      font-size:14px;
+    }
+    main{
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+    .card{
+      background:white;
+      border-radius:var(--radius);
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+      padding:14px 14px 16px;
+    }
+    .cardHeader{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:10px;
+      align-items:flex-start;
+    }
+    .cardTitle{
+      font-weight:600;
+      font-size:14px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .cardTitle span.icon{
+      font-size:16px;
+    }
+    .cardMeta{
+      font-size:11px;
+      color:var(--muted);
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:4px;
+    }
+    .miniLabel{
+      font-size:11px;
+    }
+    .counters{
+      display:flex;
+      gap:4px;
+    }
+    .counter{
+      padding:3px 6px;
+      border-radius:999px;
+      background:var(--soft);
+      border:1px solid var(--border);
+      font-size:11px;
+    }
+    .counter span{
+      font-weight:600;
+    }
+    .sectionTitle{
+      font-size:13px;
+      font-weight:600;
+      margin-bottom:6px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .sectionTitle span.icon{font-size:14px}
+    .small{
+      font-size:12px;
+      color:var(--muted);
+    }
+    label{
+      font-size:12px;
+      font-weight:500;
+      margin-bottom:4px;
+      display:block;
+    }
+    textarea{
+      width:100%;
+      min-height:90px;
+      padding:10px 38px 10px 10px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      resize:vertical;
+      font-family:var(--sans);
+      line-height:1.4;
+      font-size:13px;
+      transition:border .15s, box-shadow .15s, background .15s;
+      background:white;
+    }
+    textarea:focus{
+      outline:none;
+      border-color:var(--accent);
+      box-shadow:0 0 0 1px rgba(11,95,255,0.1);
+      background:#f8f9ff;
+    }
+    textarea[disabled]{
+      background:#f5f5f5;
+      color:#999;
+      cursor:not-allowed;
+    }
+    input[type="text"]{
+      width:100%;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      font-size:13px;
+      font-family:var(--sans);
+    }
+    input[type="text"]:focus{
+      outline:none;
+      border-color:var(--accent);
+      box-shadow:0 0 0 1px rgba(11,95,255,0.1);
+    }
+    select{
+      width:100%;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      font-size:13px;
+      font-family:var(--sans);
+      background:white;
+    }
+    select:focus{
+      outline:none;
+      border-color:var(--accent);
+      box-shadow:0 0 0 1px rgba(11,95,255,0.1);
+    }
+    .two{
+      display:grid;
+      grid-template-columns:1.2fr 1.1fr;
+      gap:10px;
+      margin-top:6px;
+    }
+    .two > div{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .hint{
+      font-size:11px;
+      color:var(--muted);
+      margin:0 0 4px;
+    }
+    .hint b{
+      color:#000;
+    }
+    .hint-box{
+      margin-top:4px;
+      font-size:11px;
+      color:var(--muted);
+      border-radius:8px;
+      padding:6px 8px;
+      background:#f9fafb;
+      border:1px dashed #d0d7de;
+      display:none;
+    }
+    .hint-box.show{
+      display:block;
+    }
+    .btnRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:8px;
+    }
+    .btn{
+      border-radius:999px;
+      border:none;
+      padding:6px 10px;
+      font-size:12px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
       cursor:pointer;
-      padding:12px;
+      background:var(--accent);
+      color:white;
+      box-shadow:0 2px 8px rgba(11,95,255,0.28);
+      min-height:32px;
+    }
+    .btn.small{
+      padding:4px 8px;
+      font-size:11px;
+      min-height:26px;
+    }
+    .btn.ghost{
+      background:white;
+      color:#111;
+      border:1px solid var(--border);
+      box-shadow:none;
+    }
+    .btn.ghost:hover{
+      background:#f3f4ff;
+      border-color:#c7d2fe;
+    }
+    .btn[disabled],
+    .btn:disabled{
+      opacity:0.5;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+    .btn.primary{
+      background:#0b5fff;
+      color:white;
+      border:1px solid #0b5fff;
+    }
+    .btn.primary:hover{
+      background:#0847c0;
+      border-color:#0847c0;
+    }
+    .btn.success{
+      background:#137333;
+      border-color:#137333;
+    }
+    .btn.success:hover{
+      background:#0f5a28;
+    }
+    .btn.iconOnly{
+      padding:6px;
+      width:30px;
+      justify-content:center;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      border-radius:999px;
+      font-size:11px;
+      padding:3px 8px;
+      background:var(--soft);
+      border:1px solid var(--border);
+      gap:4px;
+    }
+    .badge.ok{
+      background:#e8f5e9;
+      border-color:#c8e6c9;
+      color:#1b5e20;
+    }
+    .badge.warn{
+      background:#fff8e1;
+      border-color:#ffe0b2;
+      color:#e65100;
+    }
+    .badge.bad{
+      background:#ffebee;
+      border-color:#ffcdd2;
+      color:#b71c1c;
+    }
+    .badge span.icon{
+      font-size:13px;
+    }
+    .presetRow{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom:8px;
+    }
+    .presetRowInner{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .presetCard{
+      border-radius:999px;
+      border:1px solid var(--border);
+      padding:4px 10px;
+      font-size:11px;
+      background:#f9fafb;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .presetCard span.icon{
+      font-size:14px;
+    }
+    .activePreset{
+      font-size:11px;
+      color:var(--muted);
+    }
+    .kwWrap{
+      display:flex;
+      gap:6px;
+      align-items:flex-start;
+      margin-top:4px;
+    }
+    .kwWrap textarea{
+      min-height:70px;
+    }
+    .statusBar{
+      margin-top:8px;
+      padding:6px 8px;
+      border-radius:10px;
+      background:#f9fafb;
+      border:1px dashed #d0d7de;
+      font-size:11px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .statusLeft{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      align-items:center;
+    }
+    .statusRight{
+      font-family:var(--mono);
+      font-size:11px;
+      color:var(--muted);
+    }
+    .statusRight span{
+      font-weight:600;
+      color:#000;
+    }
+    .miniTag{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      font-size:11px;
+      padding:2px 6px;
+      border-radius:999px;
+      background:#f3f4ff;
+      border:1px solid #c7d2fe;
+    }
+    .miniTag span.icon{
+      font-size:12px;
+    }
+    .lock{
+      font-size:11px;
+      padding:2px 6px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#f9fafb;
+    }
+    .lock.badge-locked{
+      background:#ffebee;
+      border-color:#ffcdd2;
+      color:#b71c1c;
+    }
+    .lock.badge-open{
+      background:#e8f5e9;
+      border-color:#c8e6c9;
+      color:#1b5e20;
+    }
+    .lock.badge-wait{
+      background:#fff8e1;
+      border-color:#ffe0b2;
+      color:#e65100;
+    }
+    .cpanel{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:8px;
+    }
+    .cpanel .badge{
+      cursor:default;
+    }
+    .cpanel .badge strong{
+      font-weight:600;
+    }
+    .sumRow{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .sumRow textarea{
+      min-height:120px;
+    }
+    .sumRow .small{
+      margin-top:2px;
+    }
+    .acc{
+      border-radius:var(--radius);
+      border:1px solid rgba(0,0,0,0.05);
+      background:#fdfdfd;
+      margin:0 0 6px;
+      padding:0;
+    }
+    .acc[open]{
+      background:#f8f9ff;
+      border-color:#c7d2fe;
+      box-shadow:0 8px 18px rgba(15,23,42,0.08);
+    }
+    .acc summary{
+      list-style:none;
+      padding:10px 12px;
+      cursor:pointer;
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
-      user-select:none;
-      background:#fff;
     }
-    details.acc summary::-webkit-details-marker{ display:none; }
-
-    .accTitle{ display:flex; flex-direction:column; gap:2px; }
-    .accTitle b{ font-size:14px; }
-    .accTitle span{ font-size:12px; color:var(--muted); }
-
-    .accMeta{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
-    .lock{
-      font-size:12px; color:var(--muted);
-      display:inline-flex; align-items:center; gap:6px;
-      padding:6px 10px; border-radius:999px;
-      border:1px solid var(--border); background:var(--soft);
+    .acc summary::-webkit-details-marker{display:none}
+    .accTitle{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .accTitle b{
+      font-size:13px;
+    }
+    .accTitle span{
+      font-size:11px;
+      color:var(--muted);
+    }
+    .accMeta{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:4px;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .accMeta .tag{
+      padding:2px 6px;
+      border-radius:999px;
+      background:#f3f4ff;
+      border:1px solid #c7d2fe;
+      font-size:11px;
+    }
+    .accBody{
+      border-top:1px solid rgba(0,0,0,0.04);
+      padding:8px 12px 10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .acc[open] summary{
+      border-bottom:1px solid rgba(0,0,0,0.04);
+      background:linear-gradient(to right,#eef2ff,#f9fafb);
+    }
+    .acc summary .arrow{
+      font-size:16px;
+      transition:transform 0.2s;
+    }
+    .acc[open] summary .arrow{
+      transform:rotate(90deg);
+    }
+    .fieldRow{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      margin-top:4px;
+    }
+    .fieldTools{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      justify-content:flex-end;
+      margin-top:4px;
+    }
+    .fieldTools .btn{
+      font-size:10px;
+      padding:3px 7px;
+      min-height:0;
+    }
+    .fieldTools .btn span.icon{
+      font-size:12px;
+    }
+    .fieldGroupTitle{
+      font-size:12px;
+      font-weight:600;
+      margin-top:2px;
+    }
+    .kpiRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:4px;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .kpiRow span strong{
+      color:#000;
+    }
+    .styleGrid{
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      margin-top:6px;
+    }
+    .styleCard{
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:#fdfdfd;
+      padding:8px 10px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .styleHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+    }
+    .styleTitle{
+      font-size:12px;
+      font-weight:600;
+    }
+    .styleBadge{
+      font-size:11px;
+      padding:2px 6px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#f9fafb;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+    .styleBadge span.icon{font-size:12px}
+    .styleBody{
+      font-size:11px;
+      color:var(--muted);
+    }
+    .styleBody ul{
+      margin:4px 0 0;
+      padding-left:16px;
+    }
+    .styleBody li{
+      margin-bottom:2px;
+    }
+    .styleFooter{
+      margin-top:4px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+      font-size:11px;
+    }
+    .styleFooter .badge{
+      font-size:10px;
+    }
+    .styleFooter .btn{
+      font-size:10px;
+      padding:3px 7px;
+    }
+    .style-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      font-size:11px;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#f3f4ff;
+      margin-bottom:4px;
+    }
+    .style-badge.explorer{
+      background:#e0f2fe;
+      border-color:#bae6fd;
+    }
+    .style-badge.reflector{
+      background:#f3e8ff;
+      border-color:#e9d5ff;
+    }
+    .style-badge.theorist{
+      background:#eef2ff;
+      border-color:#e0e7ff;
+    }
+    .style-badge.pragmatist{
+      background:#ecfdf3;
+      border-color:#bbf7d0;
+    }
+    .style-badge span.icon{
+      font-size:13px;
+    }
+    .styled-cpr-area{
+      min-height:110px;
+    }
+    .footerNote{
+      font-size:11px;
+      color:var(--muted);
+      margin:0;
+      margin-top:6px;
+    }
+    .footerNote b{
+      color:#000;
+    }
+    .highlight{
+      background:yellow;
+    }
+    .autoScore{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:3px 6px;
+      border-radius:999px;
+      background:#f3f4ff;
+      border:1px solid #c7d2fe;
+    }
+    .badge.muted{
+      background:#f3f4ff;
+      border-color:#e5e7eb;
+      color:#4b5563;
+    }
+    .badge.muted span.icon{
+      color:#9ca3af;
+    }
+    .notice{
+      margin-top:4px;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .notice b{
+      color:#000;
+    }
+    .badge.lite{
+      background:#f9fafb;
+      border-color:#e5e7eb;
+    }
+    .badge.lite strong{
+      font-weight:600;
+    }
+    .styleFeedback{
+      font-size:11px;
+      color:#4b5563;
+      background:#f9fafb;
+      border-radius:10px;
+      border:1px dashed #d1d5db;
+      padding:6px 8px;
+      margin-top:4px;
+    }
+    .styleFeedback b{
+      color:#111827;
+    }
+    .smallNote{
+      font-size:10px;
+      color:#9ca3af;
+      margin-top:2px;
+    }
+    .badge.soft{
+      background:#f9fafb;
+      border-color:#e5e7eb;
+    }
+    .badge.soft span.icon{
+      color:#9ca3af;
+    }
+    .badge.soft strong{
+      color:#111827;
+    }
+    .computedScore{
+      font-size:11px;
+      color:#111827;
+      background:#eff6ff;
+      border-radius:999px;
+      padding:2px 6px;
+      border:1px solid #bfdbfe;
+    }
+    .computedScore span{
+      font-weight:600;
+    }
+    .small-badge{
+      font-size:10px;
+      padding:2px 6px;
+      border-radius:999px;
+      background:#f3f4ff;
+      border:1px solid #e5e7eb;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+    .small-badge span.icon{
+      font-size:11px;
+    }
+    .metaRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:4px;
+      font-size:11px;
+      color:#6b7280;
+    }
+    .metaRow span strong{
+      color:#111827;
+    }
+    .pill.primary{
+      background:#eff6ff;
+      border-color:#bfdbfe;
+      color:#1d4ed8;
+    }
+    .pill.primary span.icon{
+      color:#3b82f6;
+    }
+    .pill.soft{
+      background:#f9fafb;
+      border-color:#e5e7eb;
+      color:#4b5563;
+    }
+    .pill.soft span.icon{
+      color:#9ca3af;
+    }
+    .pill.ok{
+      background:#ecfdf3;
+      border-color:#bbf7d0;
+      color:#166534;
+    }
+    .pill.ok span.icon{
+      color:#22c55e;
+    }
+    .pill.warn{
+      background:#fffbeb;
+      border-color:#fed7aa;
+      color:#92400e;
+    }
+    .pill.warn span.icon{
+      color:#f97316;
+    }
+    .pill.bad{
+      background:#fef2f2;
+      border-color:#fecaca;
+      color:#b91c1c;
+    }
+    .pill.bad span.icon{
+      color:#ef4444;
+    }
+    .lock span.icon{
+      font-size:12px;
+    }
+    .mobileOnly{
+      display:none;
+    }
+    @media (max-width:768px){
+      .mobileOnly{
+        display:inline-flex;
+      }
+    }
+    .kwAdd{
       white-space:nowrap;
     }
-    .accBody{ padding:12px; border-top:1px solid var(--border); background:#fff; }
-
-    .sectionTitle{
-      font-size:14px; font-weight:800; margin:10px 0 6px;
+    .listening-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #111827;
+      background: #eff6ff;
+      border-radius: 999px;
+      padding: 2px 8px;
+      border: 1px solid #bfdbfe;
+      margin-left: 6px;
     }
-  </style>
-</head>
-
-<body>
-<div class="container">
-  <header>
-    <div>
-      <h1>FAST CPR KOÇU</h1>
-      <p class="sub">
-        1) Önce <b>Temel CPR (stilsiz)</b> yazılır ve yalnızca CPR yapısı doğrulanır. <br/>
-        2) CPR “geçti” olunca <b>stil panelleri</b> aktif olur. Her stile göre adapte edip kontrol edersin.
-      </p>
-    </div>
-    <div class="pill">
-      <span>✅ Mobil odaklı</span>
-      <span class="tag">index.html</span>
-    </div>
-  </header>
-
-  <div class="card">
-    <!-- Base CPR Accordion -->
-    <details class="acc" data-acc="base" id="acc_base" open>
-      <summary>
-        <div class="accTitle">
-          <b>1) Temel CPR (Stilsiz)</b>
-          <span>Sadece CPR yapısı kontrol edilir. CPR ≥ 13 olunca stiller aktifleşir.</span>
-        </div>
-        <div class="accMeta">
-          <span class="lock" id="lock_base">🟦 Açık</span>
-          <span class="tag" id="mini_base">CPR: —</span>
-        </div>
-      </summary>
-
-      <div class="accBody">
-        <p class="hint">Bu bölümde <b>stil değerlendirmesi yapılmaz</b>. Amaç: CPR iskeleti doğru mu?</p>
-
-        <label for="base_claim">Claim (Problem / Etki)</label>
-        <textarea id="base_claim" placeholder="Örn: ... kültür–antibiyogram sonucunu beklemek her zaman mümkün olmayabilir."></textarea>
-        <div class="fieldTools"><button class="btn ghost small" id="clear_base_claim">Temizle</button></div>
-
-        <div class="two">
-          <div>
-            <label for="base_feat">Proposition — Özellik</label>
-            <textarea id="base_feat" placeholder="Örn: ...geniş spektrum / yarılanma ömrü / ambalaj..."></textarea>
-            <div class="fieldTools"><button class="btn ghost small" id="clear_base_feat">Temizle</button></div>
-          </div>
-          <div>
-            <label for="base_adv">Proposition — Avantaj</label>
-            <textarea id="base_adv" placeholder="Örn: ...benzerlerine göre ... sağlar..."></textarea>
-            <div class="fieldTools"><button class="btn ghost small" id="clear_base_adv">Temizle</button></div>
-          </div>
-        </div>
-
-        <label for="base_ben">Proposition — Fayda</label>
-        <textarea id="base_ben" placeholder="Örn: ...bu sayede / böylece..."></textarea>
-        <div class="fieldTools"><button class="btn ghost small" id="clear_base_ben">Temizle</button></div>
-
-        <label for="base_rec">Recommendation (Kapanış / Aksiyon)</label>
-        <textarea id="base_rec" placeholder="Örn: ...değerlendirir misiniz? / önerir misiniz?"></textarea>
-        <div class="fieldTools"><button class="btn ghost small" id="clear_base_rec">Temizle</button></div>
-
-        <div class="row">
-          <button class="btn" id="btnCheckBase">Temel CPR’ı Kontrol Et</button>
-          <button class="btn secondary" id="btnReset">Tümünü Sıfırla</button>
-          <span class="tag" id="gateInfo">Eşik: CPR ≥ 13/20 → Stil panelleri açılır</span>
-        </div>
-
-        <div class="hr"></div>
-
-        <div class="scorebox" id="baseResult" aria-live="polite">
-          <div class="status">
-            <span class="badge" id="baseBadge">Henüz kontrol edilmedi</span>
-            <span class="tag" id="baseScoreText">CPR: — / 20</span>
-          </div>
-          <div>
-            <div class="row" style="justify-content:space-between;margin-top:0;">
-              <span style="font-size:13px;">CPR Skoru</span>
-              <span class="tag" id="baseScoreMini">—</span>
-            </div>
-            <div class="meter"><div class="bar" id="baseBar"></div></div>
-          </div>
-          <div class="feedback" id="baseFeedback">
-            <b>Geri bildirim:</b> Temel CPR’ı kontrol etmek için yukarıdaki butona bas.
-          </div>
-        </div>
-
-        <p class="footerNote">
-          Not: Bu sürüm “kural tabanlı”dır. Ürün bazlı uyarlama için sözlükler tek noktadan güncellenebilir.
-        </p>
-      </div>
-    </details>
-
-    <div class="hr"></div>
-
-    <div class="sectionTitle">2) Stile Göre CPR Adaptasyonu (Accordion)</div>
-    <p class="hint">
-      Temel CPR geçince stiller aktifleşir. Başlığa dokun → panel açılır. Başka stile geçince önceki kapanır ama içerik korunur.
-      İçeriyi hızlandırmak için <b>“Temel CPR’ı Kopyala”</b> kullan.
-    </p>
-
-    <!-- Style Accordions -->
-    <details class="acc" data-style="activist" id="acc_activist">
-      <summary>
-        <div class="accTitle">
-          <b>Değişimci (Activist)</b>
-          <span>Hız, aksiyon, “hemen” dili</span>
-        </div>
-        <div class="accMeta">
-          <span class="lock">🔒 Kilitli</span>
-          <span class="tag" id="mini_activist">CPR: — · Stil: —</span>
-        </div>
-      </summary>
-      <div class="accBody">
-        <div class="row" style="margin-top:0;">
-          <button class="btn small ghost copyBase" disabled>Temel CPR’ı Kopyala</button>
-          <button class="btn small secondary styleCheck" disabled>Kontrol Et</button>
-          <span class="tag styleScoreLine">CPR: —/20 · Stil: —/20</span>
-        </div>
-
-        <label>Claim</label>
-        <textarea class="s_claim" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Özellik</label>
-        <textarea class="s_feat" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Avantaj</label>
-        <textarea class="s_adv" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Fayda</label>
-        <textarea class="s_ben" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Recommendation</label>
-        <textarea class="s_rec" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <div class="feedback styleFeedback">
-          <b>Geri bildirim:</b> Temel CPR onaylandıktan sonra bu panel aktifleşir.
-        </div>
-      </div>
-    </details>
-
-    <details class="acc" data-style="reflector" id="acc_reflector">
-      <summary>
-        <div class="accTitle">
-          <b>Yansıtıcı (Reflector)</b>
-          <span>Güven, veri, baskısız kapanış</span>
-        </div>
-        <div class="accMeta">
-          <span class="lock">🔒 Kilitli</span>
-          <span class="tag" id="mini_reflector">CPR: — · Stil: —</span>
-        </div>
-      </summary>
-      <div class="accBody">
-        <div class="row" style="margin-top:0;">
-          <button class="btn small ghost copyBase" disabled>Temel CPR’ı Kopyala</button>
-          <button class="btn small secondary styleCheck" disabled>Kontrol Et</button>
-          <span class="tag styleScoreLine">CPR: —/20 · Stil: —/20</span>
-        </div>
-
-        <label>Claim</label>
-        <textarea class="s_claim" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Özellik</label>
-        <textarea class="s_feat" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Avantaj</label>
-        <textarea class="s_adv" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Fayda</label>
-        <textarea class="s_ben" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Recommendation</label>
-        <textarea class="s_rec" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <div class="feedback styleFeedback">
-          <b>Geri bildirim:</b> Temel CPR onaylandıktan sonra bu panel aktifleşir.
-        </div>
-      </div>
-    </details>
-
-    <details class="acc" data-style="theorist" id="acc_theorist">
-      <summary>
-        <div class="accTitle">
-          <b>Kuramcı (Theorist)</b>
-          <span>Çerçeve, mekanizma, tutarlılık</span>
-        </div>
-        <div class="accMeta">
-          <span class="lock">🔒 Kilitli</span>
-          <span class="tag" id="mini_theorist">CPR: — · Stil: —</span>
-        </div>
-      </summary>
-      <div class="accBody">
-        <div class="row" style="margin-top:0;">
-          <button class="btn small ghost copyBase" disabled>Temel CPR’ı Kopyala</button>
-          <button class="btn small secondary styleCheck" disabled>Kontrol Et</button>
-          <span class="tag styleScoreLine">CPR: —/20 · Stil: —/20</span>
-        </div>
-
-        <label>Claim</label>
-        <textarea class="s_claim" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Özellik</label>
-        <textarea class="s_feat" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Avantaj</label>
-        <textarea class="s_adv" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Fayda</label>
-        <textarea class="s_ben" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Recommendation</label>
-        <textarea class="s_rec" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <div class="feedback styleFeedback">
-          <b>Geri bildirim:</b> Temel CPR onaylandıktan sonra bu panel aktifleşir.
-        </div>
-      </div>
-    </details>
-
-    <details class="acc" data-style="pragmatist" id="acc_pragmatist">
-      <summary>
-        <div class="accTitle">
-          <b>Uygulamacı (Pragmatist)</b>
-          <span>Uygulanabilirlik, iş akışı, “nasıl?”</span>
-        </div>
-        <div class="accMeta">
-          <span class="lock">🔒 Kilitli</span>
-          <span class="tag" id="mini_pragmatist">CPR: — · Stil: —</span>
-        </div>
-      </summary>
-      <div class="accBody">
-        <div class="row" style="margin-top:0;">
-          <button class="btn small ghost copyBase" disabled>Temel CPR’ı Kopyala</button>
-          <button class="btn small secondary styleCheck" disabled>Kontrol Et</button>
-          <span class="tag styleScoreLine">CPR: —/20 · Stil: —/20</span>
-        </div>
-
-        <label>Claim</label>
-        <textarea class="s_claim" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Özellik</label>
-        <textarea class="s_feat" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Avantaj</label>
-        <textarea class="s_adv" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Fayda</label>
-        <textarea class="s_ben" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <label>Recommendation</label>
-        <textarea class="s_rec" disabled></textarea>
-        <div class="fieldTools"><button class="btn ghost small clearField" disabled>Temizle</button></div>
-
-        <div class="feedback styleFeedback">
-          <b>Geri bildirim:</b> Temel CPR onaylandıktan sonra bu panel aktifleşir.
-        </div>
-      </div>
-    </details>
-
-    <p class="footerNote">
-      Mobil pratik: Temel CPR’ı geç → Temel panel kapanır → stile gir → “Temel CPR’ı Kopyala” → sadece gerekli kelimeleri değiştir → kontrol et.
-    </p>
-  </div>
-</div>
-
-<script>
-(function(){
-  const norm = (s) => (s || "")
-    .toLowerCase()
-    .replaceAll("İ","i").replaceAll("I","i").replaceAll("ı","i")
-    .replace(/\s+/g," ")
-    .trim();
-
-  const includesAny = (text, arr) => arr.some(x => text.includes(x));
-  const countMatches = (text, terms) => terms.reduce((acc, t) => acc + (text.includes(t) ? 1 : 0), 0);
-  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-
-  function scoreToLevel(score, max){
-    const pct = (score / max) * 100;
-    if (pct >= 85) return {label:"A-ROSS Seviyesi", cls:"ok"};
-    if (pct >= 65) return {label:"İyi", cls:"warn"};
-    return {label:"Geliştirilmeli", cls:"bad"};
-  }
-
-  const cprLex = {
-    claimPositive: [
-      "beklemek","mümkün olmayabilir","risk","belirsiz","zorlaş","süreklilik","uyum","gecik",
-      "stabilite","hijyen","ısı","ışık","nem","dalgalan","öngörü","etki","komplikasyon"
-    ],
-    claimNegative: [
-      "geniş spektrum","yarılanma ömrü","protein","blister","%","mg","tok karnına","günde"
-    ],
-    recPositive: [
-      "önerir misiniz","değerlendirir misiniz","düşünür müsünüz","reçete eder misiniz","başlamayı","tercih eder misiniz"
-    ],
-    recNegative: ["en iyisi","mucize","kesin","garanti"]
-  };
-
-  function scoreClaim(claim){
-    const t = norm(claim);
-    let s = 0;
-    if (includesAny(t, cprLex.claimPositive)) s += 1;
-    if (includesAny(t, ["hasta","hastalar","başvuran","enfeksiyon","solunum","günlük","kullanım","bazı","durum","olduğunda"])) s += 1;
-    if (includesAny(t, ["risk","süreklilik","öngörü","uyum","stabil","azalt","art","boz"])) s += 1;
-    if (includesAny(t, cprLex.claimNegative)) s -= 1;
-    return clamp(s, 0, 4);
-  }
-
-  function scoreProp(feat, adv, ben){
-    const f = norm(feat), a = norm(adv), b = norm(ben);
-    let s = 0;
-
-    if (f.length >= 18) s += 1;
-    if (includesAny(f, ["%","mg","saat","yarılanma","ambalaj","blister","spektrum","protein"])) s += 1;
-
-    if (includesAny(a, ["sayesinde","göre","daha","sağlar","kolaylaştır","üstünlük","korur"])) s += 2;
-    else if (a.length >= 18) s += 1;
-
-    if (includesAny(b, ["bu sayede","böylece"])) s += 1;
-    if (includesAny(b, ["hasta","hastalar","iyileş","uyum","taşı","devam","güven","rahat"])) s += 1;
-
-    return clamp(s, 0, 6);
-  }
-
-  function scoreRec(rec, claim){
-    const r = norm(rec);
-    const c = norm(claim);
-    let s = 0;
-
-    if (includesAny(r, cprLex.recPositive)) s += 2;
-    if (includesAny(r, ["bu hasta","bu hastalar","aktif yaşantı","sye","solunum","ambalaj","uyum","süreklilik"])) s += 1;
-    if (r.length <= 180 && r.length >= 12) s += 1;
-
-    if (includesAny(r, cprLex.recNegative)) s -= 1;
-    if (includesAny(c, ["beklemek","gecik","mümkün olmayabilir"]) && includesAny(r, ["bekleyelim","sonra"])) s -= 1;
-
-    return clamp(s, 0, 4);
-  }
-
-  function scoreCoherence(claim, feat, adv, ben, rec){
-    let s = 0;
-    const claimKey = norm(claim);
-    const propKey = norm([feat,adv,ben].join(" "));
-    const recKey = norm(rec);
-
-    const shared = [
-      ["uyum","uyum"],["stabil","stabil"],["hijyen","hijyen"],["bekle","ampirik"],
-      ["süreklilik","süre"],["öngörü","stabil"],["taşı","ambalaj"]
-    ].filter(([x,y]) => claimKey.includes(x) && propKey.includes(y)).length;
-
-    if (shared >= 1) s += 2;
-    else if (propKey.length > 0) s += 1;
-
-    if (claimKey && recKey){
-      if (countMatches(recKey, ["önerir misiniz","değerlendirir misiniz","düşünür müsünüz","reçete eder misiniz"]) >= 1) s += 2;
-      else s += 1;
+    
+    .listening-indicator .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      animation: pulse-dot 1.2s infinite;
     }
-
-    const claimHasProblem = includesAny(claimKey, cprLex.claimPositive);
-    const propHasFeature = includesAny(propKey, ["spektrum","yarılanma","protein","ambalaj","blister","%","saat"]);
-    if (claimHasProblem && propHasFeature) s += 2;
-    else if (claimHasProblem || propHasFeature) s += 1;
-
-    return clamp(s, 0, 6);
-  }
-
-  function scoreCPR(block){
-    const c = scoreClaim(block.claim);
-    const p = scoreProp(block.feat, block.adv, block.ben);
-    const r = scoreRec(block.rec, block.claim);
-    const coh = scoreCoherence(block.claim, block.feat, block.adv, block.ben, block.rec);
-    const total = c + p + r + coh;
-    return { total, parts: { claim:c, prop:p, rec:r, coherence:coh } };
-  }
-
-  const styleRubrics = {
-    activist: {
-      name: "Değişimci (Activist)",
-      positive: [{t:"hemen",w:2},{t:"şimdi",w:2},{t:"başlayalım",w:2},{t:"deneyelim",w:2},{t:"hızlı",w:1},{t:"gecikmeden",w:2},{t:"pratikte",w:1},{t:"aksiyon",w:1}],
-      negative: [{t:"mekanizma",w:1},{t:"adım adım",w:1},{t:"detaylı analiz",w:2},{t:"önce değerlendirelim",w:2}],
-      redFlags: ["önce değerlendirelim","detaylı analiz","bekleyelim"],
-      recPref: ["önerir misiniz","başlayalım","deneyelim","hemen"]
-    },
-    reflector: {
-      name: "Yansıtıcı (Reflector)",
-      positive: [{t:"değerlendir",w:2},{t:"veri",w:2},{t:"kanıt",w:2},{t:"güven",w:1},{t:"stabil",w:2},{t:"risk",w:1},{t:"karşılaştır",w:1},{t:"gözlem",w:1}],
-      negative: [{t:"hemen",w:2},{t:"şimdi",w:2},{t:"kesin",w:2},{t:"garanti",w:2}],
-      redFlags: ["hemen","kesin","garanti"],
-      recPref: ["değerlendirir misiniz","düşünür müsünüz"]
-    },
-    theorist: {
-      name: "Kuramcı (Theorist)",
-      positive: [{t:"mekanizma",w:2},{t:"çerçeve",w:2},{t:"sistematik",w:2},{t:"tutarlı",w:1},{t:"neden",w:1},{t:"sonuç",w:1},{t:"adım adım",w:2},{t:"öngörü",w:1}],
-      negative: [{t:"bence",w:2},{t:"hemen deneyelim",w:2},{t:"mucize",w:2},{t:"en iyi",w:2}],
-      redFlags: ["bence","mucize","en iyi"],
-      recPref: ["bu çerçevede","mantıklı olabilir","değerlendirir misiniz"]
-    },
-    pragmatist: {
-      name: "Uygulamacı (Pragmatist)",
-      positive: [{t:"uygulamada",w:2},{t:"pratik",w:2},{t:"kolay",w:1},{t:"rutin",w:1},{t:"iş akışı",w:2},{t:"uyum",w:2},{t:"protokol",w:1},{t:"nasıl",w:1}],
-      negative: [{t:"vizyon",w:1},{t:"ilke",w:1},{t:"soyut",w:2},{t:"mucize",w:2}],
-      redFlags: ["soyut","mucize"],
-      recPref: ["reçete eder misiniz","uygulamada","rutin","kolay"]
+    
+    @keyframes pulse-dot {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
     }
-  };
-
-  function scoreStyle(styleKey, block){
-    const rub = styleRubrics[styleKey];
-    const text = norm([block.claim, block.feat, block.adv, block.ben, block.rec].join(" "));
-    const rec = norm(block.rec);
-
-    const posScore = rub.positive.reduce((acc, it)=> acc + (text.includes(it.t) ? it.w : 0), 0);
-    const negScore = rub.negative.reduce((acc, it)=> acc + (text.includes(it.t) ? it.w : 0), 0);
-    let tone = clamp(Math.round((posScore - negScore) + 2), 0, 5);
-
-    const evidenceTerms = rub.positive.filter(it => ["veri","kanıt","mekanizma","çerçeve","uygulamada","iş akışı","stabil","uyum"].some(k => it.t.includes(k)));
-    const evHits = evidenceTerms.reduce((acc,it)=> acc + (text.includes(it.t) ? 1 : 0), 0);
-    let evidence = clamp(evHits, 0, 5);
-
-    let flow = 3;
-    const len = text.length;
-    if (len < 220) flow += 1;
-    if (len < 160) flow += 1;
-    if (len > 520) flow -= 2;
-    flow = clamp(flow, 0, 5);
-
-    const recHit = rub.recPref.some(t => rec.includes(t));
-    let recScore = recHit ? 5 : (includesAny(rec, ["önerir misiniz","değerlendirir misiniz","düşünür müsünüz","reçete eder misiniz"]) ? 3 : 1);
-
-    const flags = rub.redFlags.filter(f => text.includes(f));
-    const total = clamp(tone + evidence + flow + recScore, 0, 20);
-
-    const suggestions = [];
-    if (!recHit) suggestions.push(`Kapanış dilini ${rub.name} için daha uyumlu yap (örn: ${rub.recPref.slice(0,2).map(x=>`“${x}”`).join(", ")}).`);
-    if (tone <= 2) suggestions.push(`Dil/ton sinyali zayıf. ${rub.name} için anahtar ipuçlarını artır.`);
-    if (evidence <= 1) suggestions.push(`Kanıt/çıpa sinyali düşük. ${rub.name} beklentisine uygun bir gerekçe/çıpa ekle.`);
-    if (flags.length) suggestions.push(`Kırmızı bayrak: ${flags.map(x=>`“${x}”`).join(", ")} — tonu yumuşatmayı düşün.`);
-
-    return { total, parts:{tone,evidence,flow,rec:recScore}, flags, suggestions };
-  }
-
-  const base = {
-    acc: document.getElementById("acc_base"),
-    lock: document.getElementById("lock_base"),
-    mini: document.getElementById("mini_base"),
-    claim: document.getElementById("base_claim"),
-    feat: document.getElementById("base_feat"),
-    adv: document.getElementById("base_adv"),
-    ben: document.getElementById("base_ben"),
-    rec: document.getElementById("base_rec"),
-    btn: document.getElementById("btnCheckBase"),
-    reset: document.getElementById("btnReset"),
-    badge: document.getElementById("baseBadge"),
-    scoreText: document.getElementById("baseScoreText"),
-    scoreMini: document.getElementById("baseScoreMini"),
-    bar: document.getElementById("baseBar"),
-    feedback: document.getElementById("baseFeedback"),
-    gateInfo: document.getElementById("gateInfo"),
-  };
-
-  const accs = Array.from(document.querySelectorAll("details.acc"));
-  const styleAccs = Array.from(document.querySelectorAll("details.acc[data-style]"));
-  let basePassed = false;
-
-  function setBadge(el, cls, text){
-    el.className = "badge " + (cls || "");
-    el.textContent = text;
-  }
-  function setBar(barEl, score, max){
-    const pct = clamp(Math.round((score/max)*100), 0, 100);
-    barEl.style.width = pct + "%";
-  }
-
-  function enableStyles(enable){
-    basePassed = enable;
-    styleAccs.forEach(panel => {
-      const lock = panel.querySelector(".lock");
-      const copyBtn = panel.querySelector(".copyBase");
-      const checkBtn = panel.querySelector(".styleCheck");
-      const clearBtns = panel.querySelectorAll(".clearField");
-      const areas = panel.querySelectorAll("textarea");
-
-      areas.forEach(t => t.disabled = !enable);
-      copyBtn.disabled = !enable;
-      checkBtn.disabled = !enable;
-      clearBtns.forEach(b => b.disabled = !enable);
-
-      lock.textContent = enable ? "🔓 Aktif" : "🔒 Kilitli";
-      lock.style.background = enable ? "rgba(19,115,51,.06)" : "var(--soft)";
-      lock.style.borderColor = enable ? "rgba(19,115,51,.25)" : "var(--border)";
-      lock.style.color = enable ? "var(--ok)" : "var(--muted)";
-
-      if (!enable) panel.open = false;
-    });
-  }
-
-  // Single-open accordion across ALL (base + styles)
-  accs.forEach(d => {
-    d.addEventListener("toggle", () => {
-      if (d.open){
-        accs.forEach(other => { if (other !== d) other.open = false; });
-        d.scrollIntoView({behavior:"smooth", block:"start"});
+    
+    /* ✅ CHIP PICKER (MOBİL DOSTU ÇOKLU SEÇİM) */
+    .chipDetails{ margin-top:4px; }
+    .chipDetails summary::-webkit-details-marker{ display:none; }
+    .chipTrigger{
+      width:100%;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:white;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .chipTrigger:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 1px rgba(11,95,255,0.1); }
+    .chipTriggerText{ font-size:13px; color:#111; }
+    .chipPanel{ padding:10px 2px 4px; }
+    .chipGrid{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .chipOption{
+      border:1px solid var(--border);
+      background:var(--soft);
+      border-radius:999px;
+      padding:8px 10px;
+      font-size:12px;
+      cursor:pointer;
+      line-height:1.1;
+      text-align:left;
+      transition:background .15s, border-color .15s, transform .05s;
+    }
+    .chipOption:active{ transform:scale(0.98); }
+    .chipOption.active{
+      background:var(--accent);
+      border-color:var(--accent);
+      color:white;
+    }
+    .chipActions{
+      display:flex;
+      justify-content:flex-end;
+      gap:6px;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
+    .chipSelected{
+      margin-top:10px;
+      padding-top:10px;
+      border-top:1px dashed #d0d7de;
+    }
+    .pillWrap{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:6px;
+    }
+    .pillRem{
+      cursor:pointer;
+      border:none;
+    }
+    .pillRem .x{
+      font-weight:700;
+      opacity:0.8;
+      margin-left:6px;
+    }
+    @media (max-width:768px){
+      .chipDetails[open] .chipPanel{
+        position:fixed;
+        left:0;
+        right:0;
+        bottom:0;
+        z-index:1200;
+        background:white;
+        border-top:1px solid var(--border);
+        border-radius:18px 18px 0 0;
+        box-shadow:0 -12px 30px rgba(0,0,0,0.12);
+        padding:12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+        max-height:70vh;
+        overflow:auto;
+        -webkit-overflow-scrolling:touch;
       }
-    });
-  });
-
-  function getBaseBlock(){
-    return { claim: base.claim.value, feat: base.feat.value, adv: base.adv.value, ben: base.ben.value, rec: base.rec.value };
-  }
-
-  function baseFeedbackFrom(scoreObj){
-    const {parts} = scoreObj;
-    const tips = [];
-    if (parts.claim <= 2) tips.push("Claim’de problem/etki daha belirgin olmalı (özellik cümlesine kayma varsa geri al).");
-    if (parts.prop <= 3) tips.push("Proposition zinciri zayıf: Özellik → Avantaj → Fayda sırasını net ayır.");
-    if (parts.rec <= 2) tips.push("Recommendation aksiyon dilini netleştir (önerir misiniz / değerlendirir misiniz vb.).");
-    if (parts.coherence <= 3) tips.push("Bütünlük: Claim ile Proposition/Recommendation aynı ihtiyacı çözmeli (köprü kelimeler ekle).");
-    if (!tips.length) tips.push("Temel CPR yapısal olarak güçlü. Şimdi stillere göre adaptasyona geçebilirsin.");
-    return `
-      <b>Geri bildirim:</b>
-      <ul>${tips.map(t=>`<li>${t}</li>`).join("")}</ul>
-      <div style="margin-top:8px;color:var(--muted);font-size:12px;">
-        Parçalar — Claim: ${parts.claim}/4 · Proposition: ${parts.prop}/6 · Recommendation: ${parts.rec}/4 · Bütünlük: ${parts.coherence}/6
-      </div>
-    `;
-  }
-
-  // Clear buttons (base)
-  [
-    ["clear_base_claim", base.claim],
-    ["clear_base_feat", base.feat],
-    ["clear_base_adv", base.adv],
-    ["clear_base_ben", base.ben],
-    ["clear_base_rec", base.rec],
-  ].forEach(([id, el]) => {
-    document.getElementById(id).addEventListener("click", () => { el.value = ""; el.focus(); });
-  });
-
-  base.btn.addEventListener("click", () => {
-    const scored = scoreCPR(getBaseBlock());
-    base.scoreText.textContent = `CPR: ${scored.total} / 20`;
-    base.scoreMini.textContent = `${scored.total}/20`;
-    base.mini.textContent = `CPR: ${scored.total}/20`;
-    setBar(base.bar, scored.total, 20);
-
-    const lvl = scoreToLevel(scored.total, 20);
-
-    if (scored.total >= 13){
-      setBadge(base.badge, "ok", `Geçti · ${lvl.label}`);
-      base.feedback.innerHTML = baseFeedbackFrom(scored);
-
-      base.lock.textContent = "✅ Tamam";
-      base.lock.style.background = "rgba(19,115,51,.06)";
-      base.lock.style.borderColor = "rgba(19,115,51,.25)";
-      base.lock.style.color = "var(--ok)";
-
-      enableStyles(true);
-      base.gateInfo.textContent = "Stiller aktif. Bir stil aç → Temel CPR’ı kopyala → sadece gerekli kelimeleri değiştir.";
-
-      const first = document.getElementById("acc_activist");
-      base.acc.open = false;
-      first.open = true;
-      first.scrollIntoView({behavior:"smooth", block:"start"});
-    } else {
-      setBadge(base.badge, "bad", "Geçmedi · CPR’ı güçlendir");
-      base.feedback.innerHTML = baseFeedbackFrom(scored);
-
-      base.lock.textContent = "🟦 Açık";
-      base.lock.style.background = "var(--soft)";
-      base.lock.style.borderColor = "var(--border)";
-      base.lock.style.color = "var(--muted)";
-
-      enableStyles(false);
-      base.gateInfo.textContent = "Eşik: CPR ≥ 13/20 → Stil panelleri açılır";
     }
-  });
 
-  base.reset.addEventListener("click", () => {
-    [base.claim, base.feat, base.adv, base.ben, base.rec].forEach(x => x.value = "");
-    setBadge(base.badge, "", "Henüz kontrol edilmedi");
-    base.scoreText.textContent = "CPR: — / 20";
-    base.scoreMini.textContent = "—";
-    base.mini.textContent = "CPR: —";
-    base.bar.style.width = "0%";
-    base.feedback.innerHTML = "<b>Geri bildirim:</b> Temel CPR’ı kontrol etmek için yukarıdaki butona bas.";
-    base.gateInfo.textContent = "Eşik: CPR ≥ 13/20 → Stil panelleri açılır";
+    /* --- ÜRÜN ODAK & HAZIRLIK (Chip / Pill Seçim) --- */
+    .pill.clickable{cursor:pointer; user-select:none;}
+    .pill.clickable:hover{background:#eff6ff; border-color:#bfdbfe;}
+    .pill.clickable.active{background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8;}
+    .pill.clickable.selected{background:#ecfdf3; border-color:#bbf7d0; color:#166534;}
+    .pill.clickable.selected:hover{background:#dcfce7; border-color:#86efac;}
+    .pill.removable{gap:6px;}
+    .pill .x{font-weight:700; opacity:.7;}
+    .pill .x:hover{opacity:1;}
+  
+    /* Fayda seçim limiti (pill) */
+    .pill.disabled{opacity:0.45;}
 
-    base.lock.textContent = "🟦 Açık";
-    base.lock.style.background = "var(--soft)";
-    base.lock.style.borderColor = "var(--border)";
-    base.lock.style.color = "var(--muted)";
+    /* Claim – Problem & Etki görsel bağlayıcı */
+    .claim-group{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      background:#fafbff;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      position:relative;
+    }
+    .claim-step{
+      position:relative;
+      padding-left:34px;
+    }
+    .claim-step::before{
+      content: attr(data-step);
+      position:absolute;
+      left:0;
+      top:0;
+      width:24px;
+      height:24px;
+      border-radius:50%;
+      background:var(--accent);
+      color:white;
+      font-size:12px;
+      font-weight:600;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
 
-    styleAccs.forEach(panel => {
-      panel.querySelectorAll("textarea").forEach(t => t.value = "");
-      panel.querySelector(".styleScoreLine").textContent = "CPR: —/20 · Stil: —/20";
-      panel.querySelector(".styleFeedback").innerHTML = "<b>Geri bildirim:</b> Temel CPR onaylandıktan sonra bu panel aktifleşir.";
-      const mini = document.getElementById("mini_" + panel.dataset.style);
-      if (mini) mini.textContent = "CPR: — · Stil: —";
-      panel.open = false;
-      const lock = panel.querySelector(".lock");
-      lock.textContent = "🔒 Kilitli";
-      lock.style.background = "var(--soft)";
-      lock.style.borderColor = "var(--border)";
-      lock.style.color = "var(--muted)";
-    });
+</style>
+</head>
+<body>
+  <!-- 📱 FAZ 3: GELİŞTİRİLMİŞ OFFLINE DURUM GÖSTERGESİ -->
+  <div class="offline-status" id="offlineStatus">
+    <span class="icon">📡</span>
+    <span id="connectivityText">Çevrimdışı</span>
+  </div>
 
-    enableStyles(false);
-    basePassed = false;
+  <!-- 📱 FAZ 1: MOBİL TOOLBAR -->
+  <div class="mobile-toolbar" id="mobileToolbar">
+    <button data-action="claim" title="Claim şablonu">📝 Claim</button>
+    <button data-action="feature" title="Feature şablonu">⚙️ Feature</button>
+    <button data-action="advantage" title="Advantage şablonu">🚀 Advantage</button>
+    <button data-action="benefit" title="Benefit şablonu">✅ Benefit</button>
+    <button data-action="recommendation" title="Recommendation şablonu">💡 Recommendation</button>
+    <button data-action="copy" title="Kopyala">📋 Kopyala</button>
+    <button data-action="paste" title="Yapıştır">📎 Yapıştır</button>
+    <button data-action="clear" title="Temizle">🗑️ Temizle</button>
+  </div>
 
-    base.acc.open = true;
-    base.acc.scrollIntoView({behavior:"smooth", block:"start"});
-  });
+  <!-- 📱 FAZ 2: DRAFT KAYIT GÖSTERGESİ -->
+  <div class="draft-indicator" id="draftIndicator" title="Draft durumu">
+    💾 Draft
+  </div>
 
-  function readStyleBlock(panel){
-    return {
-      claim: panel.querySelector(".s_claim").value,
-      feat: panel.querySelector(".s_feat").value,
-      adv: panel.querySelector(".s_adv").value,
-      ben: panel.querySelector(".s_ben").value,
-      rec: panel.querySelector(".s_rec").value
-    };
-  }
-
-  function styleFeedback(styleKey, cprScore, styleScore){
-    const tips = [];
-    if (cprScore.total < 13) tips.push("Önce CPR yapısını güçlendir (Claim/Ö-A-F/Recommendation net olmalı).");
-    else tips.push("CPR yapısı yeterli. Şimdi stil uyumunu belirginleştir.");
-
-    if (styleScore.suggestions.length) tips.push(...styleScore.suggestions.slice(0,3));
-    else tips.push("Stil uyumu güçlü görünüyor. Küçük dokunuşlarla daha da belirginleşebilir.");
-
-    const coach = {
-      activist: "Activist: zaman/aksiyon baskısı + net hareket çağrısı.",
-      pragmatist: "Pragmatist: ‘nasıl uygulanır?’ + iş akışı kolaylığı.",
-      reflector: "Reflector: baskısız kapanış + güven/kanıt çıpası.",
-      theorist: "Theorist: 1 cümlelik ‘neden/çerçeve’ ipucu çok güçlendirir."
-    };
-
-    return `
-      <b>Geri bildirim:</b>
-      <ul>${tips.map(t=>`<li>${t}</li>`).join("")}</ul>
-      <div style="margin-top:8px;color:var(--muted);font-size:12px;">Koç notu: ${coach[styleKey]}</div>
-      <div style="margin-top:8px;color:var(--muted);font-size:12px;">
-        Rubrik parçaları — Ton: ${styleScore.parts.tone}/5 · Kanıt: ${styleScore.parts.evidence}/5 · Akış: ${styleScore.parts.flow}/5 · Kapanış: ${styleScore.parts.rec}/5
+  <div class="container">
+    <header>
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <div>
+          <h1>
+            <span class="icon">🧠</span>
+            FAST CPR KOÇU
+          </h1>
+          <div class="sub">Claim → Proposition → Recommendation akışına adım adım koçluk eden, mobil uyumlu CPR yazım aracı</div>
+        </div>
+        <!-- 📄 YENİ TÜM RAPOR PDF BUTONU -->
+        <div class="pill" style="cursor: pointer; background: #3b82f6; color: white; margin-left: auto; transition: all 0.2s; padding: 8px 12px;" id="fullReportPDF" title="Tüm çalışmayı PDF olarak indir">
+          <span class="icon">📄</span>
+          <span>Tüm Raporu PDF'e Aktar</span>
+        </div>
       </div>
-    `;
-  }
+      <div class="badgeRow">
+        <div class="pill soft">
+          <span class="icon">🧩</span>
+          <span>FAST = CCS + ROSS + A-ROSS</span>
+        </div>
+        <div class="pill ok">
+          <span class="icon">✅</span>
+          <span>Temel CPR ≥ 13 ise stil CPR'ları aktifleşir</span>
+        </div>
+      </div>
+    </header>
+    
+    <main>
+      <!-- 1. ZİYARET ÖNCESİ HAZIRLIK KARTI (AKORDEON - AÇIK) -->
+      <details class="acc" data-acc="preparation" id="acc_preparation" open>
+        <summary>
+          <div class="accTitle">
+            <b><span class="arrow">▶</span> Ziyaret Öncesi Hazırlık</b>
+            <span>Bu alanda kaydettiğiniz bilgileri zihinsel hazırlık içindir. Zorunlu değildir</span>
+          </div>
+          <div class="accMeta">
+            <span class="tag">🎯 Hazırlık</span>
+          </div>
+        </summary>
+        
+        <div class="accBody">
+          <div class="fieldRow">
+            <label for="promoContext">Doktor / Eczacının Sosyal Stili <span class="small">(Lütfen <a href="https://iskendereser.github.io/S4Survey/" target="_blank" rel="noopener">FAST S4 Survey</a> kullanınız)</span></label>
+            <input id="promoContext" type="text" placeholder="Örn: Driving / Analytical / Expressive / Amiable (veya kendi notunuz)" />
+          </div>
 
-  styleAccs.forEach(panel => {
-    const styleKey = panel.dataset.style;
-    const copyBtn = panel.querySelector(".copyBase");
-    const checkBtn = panel.querySelector(".styleCheck");
-    const fb = panel.querySelector(".styleFeedback");
-    const scoreLine = panel.querySelector(".styleScoreLine");
-    const mini = document.getElementById("mini_" + styleKey);
+          <div class="fieldRow">
+            <label for="flexBehaviors">Uyumlu iletişim için esneyeceğiniz davranışları seçiniz <span class="small">(<a href="https://iskendereser.github.io/S4Survey/" target="_blank" rel="noopener">Lütfen FAST Compare</a> kullanınız)</span></label>
 
-    copyBtn.addEventListener("click", () => {
-      if (!basePassed) return;
-      const b = getBaseBlock();
-      panel.querySelector(".s_claim").value = b.claim;
-      panel.querySelector(".s_feat").value  = b.feat;
-      panel.querySelector(".s_adv").value   = b.adv;
-      panel.querySelector(".s_ben").value   = b.ben;
-      panel.querySelector(".s_rec").value   = b.rec;
-      fb.innerHTML = "<b>Geri bildirim:</b> Temel CPR kopyalandı. Şimdi sadece stil kapılarına göre gerekli yerleri değiştir.";
-      panel.querySelector(".s_claim").focus();
-    });
+            <details class="chipDetails" id="flexPicker">
+              <summary class="chipTrigger" role="button" aria-label="Davranış seçimi">
+                <span class="chipTriggerText" id="flexTriggerText">Davranış seçin</span>
+                <span class="small-badge" id="flexCount"><span class="icon">✅</span><span>0/16</span></span>
+              </summary>
+              <div class="chipPanel">
+                <div class="chipGrid" id="flexChipGrid">
+                    <button type="button" class="chipOption" data-value="Konuşma hızını artırma">Konuşma hızını artırma</button>
+                    <button type="button" class="chipOption" data-value="Konuşma hızını yavaşlatma">Konuşma hızını yavaşlatma</button>
+                    <button type="button" class="chipOption" data-value="Sesin hacmini artırma">Sesin hacmini artırma</button>
+                    <button type="button" class="chipOption" data-value="Sesin hacmini azaltma">Sesin hacmini azaltma</button>
+                    <button type="button" class="chipOption" data-value="Mimikleri artırma">Mimikleri artırma</button>
+                    <button type="button" class="chipOption" data-value="Mimikleri azaltma">Mimikleri azaltma</button>
+                    <button type="button" class="chipOption" data-value="Göz temasını artırma">Göz temasını artırma</button>
+                    <button type="button" class="chipOption" data-value="Göz temasını azaltma">Göz temasını azaltma</button>
+                    <button type="button" class="chipOption" data-value="Ellerin kullanımını artırma">Ellerin kullanımını artırma</button>
+                    <button type="button" class="chipOption" data-value="Ellerin kullanımını azaltma">Ellerin kullanımını azaltma</button>
+                    <button type="button" class="chipOption" data-value="Atak duruş sergileme">Atak duruş sergileme</button>
+                    <button type="button" class="chipOption" data-value="Çekinik duruş sergileme">Çekinik duruş sergileme</button>
+                    <button type="button" class="chipOption" data-value="Gerçekleri konuşma">Gerçekleri konuşma</button>
+                    <button type="button" class="chipOption" data-value="Hikayemsi konuşma">Hikayemsi konuşma</button>
+                    <button type="button" class="chipOption" data-value="Kelime sayısını artırma">Kelime sayısını artırma</button>
+                    <button type="button" class="chipOption" data-value="Kelime sayısını azaltma">Kelime sayısını azaltma</button>
+                </div>
 
-    const fields = Array.from(panel.querySelectorAll("textarea"));
-    const clearBtns = Array.from(panel.querySelectorAll(".clearField"));
-    clearBtns.forEach((btn, idx) => {
-      btn.addEventListener("click", () => {
-        if (!basePassed) return;
-        fields[idx].value = "";
-        fields[idx].focus();
-      });
-    });
+                <div class="chipActions">
+                  <button type="button" class="btn ghost small" id="flexClear">Temizle</button>
+                  <button type="button" class="btn primary small" id="flexDone">Bitti</button>
+                </div>
 
-    checkBtn.addEventListener("click", () => {
-      if (!basePassed){
-        fb.innerHTML = "<b>Geri bildirim:</b> Önce Temel CPR’ı onaylat.";
+                <div class="chipSelected">
+                  <div class="sectionTitle"><span class="icon">🏷️</span><span>Seçilenler</span></div>
+                  <div class="pillWrap" id="flexPills" aria-live="polite"></div>
+                  <input type="hidden" id="flexBehaviors" value="" />
+                </div>
+                <div class="smallNote">İpucu: Bir seçeneğe tekrar dokunarak seçimi kaldırabilirsiniz.</div>
+              </div>
+            </details>
+
+            <div class="small">Birden fazla seçim yapabilirsiniz. Seçim sınırı yoktur.</div>
+          </div>
+
+          <div class="fieldRow">
+            <label for="learningStyle">Öğrenme stilini belirleyiniz <span class="small">(Lütfen <a href="https://iskendereser.github.io/LSA/" target="_blank" rel="noopener">FAST LSA</a> kullanınız)</span></label>
+            <input id="learningStyle" type="text" placeholder="Örn: Aktivist / Reflektör / Teorist / Pragmatist" />
+          </div>
+
+          <div class="fieldRow">
+            <label for="promoGoal">SMART CPR hedefinizi yazın</label>
+            <textarea id="promoGoal" class="autoGrow" placeholder="Örn: Bu ziyarette X konuda Y ölçülebilir hedef..." rows="2"></textarea>
+          </div>
+        </div>
+      </details>
+      
+      <!-- 2. ÜRÜN ODAK & HAZIRLIK KARTI (AKORDEON - KAPALI) -->
+      <details class="acc" data-acc="productprep" id="acc_productprep">
+        <summary>
+          <div class="accTitle">
+            <b><span class="arrow">▶</span> Ürün Odak & Hazırlık</b>
+            <span>Ürün → Rakip → Üstün Yön → Sunacağınız Fayda. Bu kart, aşağıdaki CPR yazımında "fener" gibi referans olsun diye vardır.</span>
+          </div>
+          <div class="accMeta">
+            <span class="tag">🧭 Hazırlık</span>
+            <div class="counters">
+              <div class="counter">
+                🧭 <span>Hazırlık</span>
+              </div>
+              <div class="counter">
+                🧠 <span>Hatırlatıcı</span>
+              </div>
+            </div>
+          </div>
+        </summary>
+        
+        <div class="accBody">
+          <div class="presetRow">
+            <div class="presetRowInner">
+              <div class="presetCard">
+                <span class="icon">💊</span>
+                <span>Ürün seç / ekle</span>
+              </div>
+              <div class="presetCard">
+                <span class="icon">🏁</span>
+                <span>Rakip seç / ekle</span>
+              </div>
+              <div class="presetCard">
+                <span class="icon">⭐</span>
+                <span>Üstün yön + fayda seç</span>
+              </div>
+            </div>
+            <div class="activePreset" id="activeProductLabel" aria-live="polite">Seçilen ürün: —</div>
+          </div>
+
+          <!-- 1) ÜRÜN -->
+          <div class="fieldRow">
+            <label for="productNameInput">Ürün (ilk kullanımda elle yazın)</label>
+            <div class="kwWrap">
+              <input id="productNameInput" type="text" placeholder="Örn: Zoramisin" />
+              <button class="btn ghost small kwAdd" id="addProductBtn" type="button">Ekle</button>
+            </div>
+            <div class="notice">İpucu: Ürün adları otomatik biçimlendirilir (ilk harf büyük). Daha sonra pill üzerinden tek dokunuşla seçebilirsiniz.</div>
+            <div class="badgeRow" id="productPills" style="margin-top:8px;"></div>
+          </div>
+
+          <!-- 2) RAKİP -->
+          <div class="fieldRow" style="margin-top:10px;">
+            <label for="competitorNameInput">Rakip (elle yazılır, kayıt olur)</label>
+            <div class="kwWrap">
+              <input id="competitorNameInput" type="text" placeholder="Örn: Rakip Ürün" />
+              <button class="btn ghost small kwAdd" id="addCompetitorBtn" type="button">Ekle</button>
+            </div>
+            <div class="activePreset" id="activeCompetitorLabel" aria-live="polite" style="margin-top:6px;">Seçilen rakip: —</div>
+            <div class="badgeRow" id="competitorPills" style="margin-top:8px;"></div>
+          </div>
+
+          <!-- 3) ÜSTÜN YÖN -->
+          <div class="fieldRow" style="margin-top:10px;">
+            <label for="superiorityInput">Üstün Yönünüz</label>
+            <div class="hint">İstersen aşağıdaki hızlı seçeneklere dokun, istersen elle yaz.</div>
+            <div class="badgeRow" id="superiorityPills"></div>
+            <input id="superiorityInput" type="text" placeholder="Örn: Günde tek doz ile hasta uyumunu artırır" />
+          </div>
+
+          <!-- 4) SUNULACAK FAYDA -->
+          <div class="fieldRow" style="margin-top:10px;">
+            <label>Sunacağınız Fayda (en fazla 2 seçim)</label>
+            <div class="hint">Kriterlere dokundukça seçilir/kaldırılır. Seçtikleriniz altta pill olarak görünür.</div>
+            <div class="kwWrap" style="margin-top:6px;">
+              <input id="benefitCustomInput" type="text" placeholder="Kendi faydanızı yazın (opsiyonel)" />
+              <button class="btn ghost small kwAdd" id="addBenefitBtn" type="button">Ekle</button>
+            </div>
+            <div class="smallNote">Eklediğiniz faydalar kaydedilir ve tekrar kullanımda seçenek olarak görünür.</div>
+            <div class="badgeRow" id="benefitOptions"></div>
+            <div class="badgeRow" id="benefitSelected" style="margin-top:8px;"></div>
+            <div class="kwWrap" style="margin-top:8px;">
+              <textarea id="benefitTextArea" placeholder="Seçtiğiniz faydalar burada görünür (2 seçim)"></textarea>
+            </div>
+            <div class="fieldTools" style="justify-content:flex-start;">
+              <button class="btn ghost small" id="clearBenefitsBtn" type="button">Seçimleri Temizle</button>
+            </div>
+          </div>
+        </div>
+      </details>
+      
+      <!-- 3. TEMEL CPR KARTI (AKORDEON - KAPALI) -->
+      <details class="acc" data-acc="base" id="acc_base">
+        <summary>
+          <div class="accTitle">
+            <b><span class="arrow">▶</span> 1) Temel CPR (Stilsiz)</b>
+            <span>Sadece CPR yapısı kontrol edilir. CPR ≥ 13 olunca stiller aktifleşir.</span>
+          </div>
+          <div class="accMeta">
+            <span class="tag" id="mini_base">CPR: —</span>
+            <!-- 📱 FAZ 2: DRAFT BUTONU EKLENDİ -->
+            <button class="btn ghost small" id="btnSaveDraft" style="font-size:10px; padding:3px 8px;">💾 Kaydet</button>
+          </div>
+        </summary>
+        <div class="accBody">
+          <p class="hint">Bu bölümde <b>stil değerlendirmesi yapılmaz</b>. </p>
+          
+          <!-- CLAIM ALANI -->
+          <div class="cpr-section-card" data-section="claim">
+            <div class="claim-group">
+              <div class="claim-step problem">
+                <label for="base_claim_problem">Problemi Tanımlayın:</label>
+                <div class="textarea-wrapper">
+                  <textarea id="base_claim_problem" placeholder="Klinik problemi yazın..."></textarea>
+                  <button class="voice-btn" data-target="base_claim_problem" title="Sesli giriş">🎤</button>
+                </div>
+              </div>
+              
+              <div class="claim-step">
+                <label for="base_claim_effect">Etkisini Tanımlayın:</label>
+                <div class="textarea-wrapper">
+                  <textarea id="base_claim_effect" placeholder="Bu problemin hasta, hekim veya süreç üzerindeki etkisini yazın..."></textarea>
+                  <button class="voice-btn" data-target="base_claim_effect" title="Sesli giriş">🎤</button>
+                </div>
+              </div>
+            </div>
+            <div class="fieldTools">
+              <button class="btn ghost small" id="clear_base_claim_problem">Temizle</button>
+            </div>
+          </div>
+          
+          <!-- PROPOSITION - ÖZELLİK -->
+          <div class="cpr-section-card" data-section="feature">
+            <label for="base_feat">Ürün adı ve problemi çözen temel özelliği yazın</label>
+            <div class="textarea-wrapper">
+              <textarea id="base_feat" placeholder="Örn: Ürün X, günde tek doz kullanım ile hasta uyumunu artırır"></textarea>
+              <button class="voice-btn" data-target="base_feat" title="Sesli giriş">🎤</button>
+            </div>
+            <div class="hint-box" id="hint_base_feat">Ürününüzün rakiplerden farklı, hastaya sağladığı temel çözümü tanımlayın.</div>
+            <div class="fieldTools">
+              <button class="btn ghost small" id="clear_base_feat">Temizle</button>
+            </div>
+          </div>
+          
+          <!-- PROPOSITION - AVANTAJ -->
+          <div class="cpr-section-card" data-section="advantage">
+            <label for="base_adv">Rakiplere göre üstünlüğü, ticari isim kullanmadan yazın</label>
+            <div class="textarea-wrapper">
+              <textarea id="base_adv" placeholder="Örn: Bu sayede benzer etki gösterenlere göre günde tek doz kullanılır"></textarea>
+              <button class="voice-btn" data-target="base_adv" title="Sesli giriş">🎤</button>
+            </div>
+            <div class="hint-box" id="hint_base_adv">Rakip ürünlerle karşılaştırma yapın, ancak rakip ismi kullanmayın.</div>
+            <div class="fieldTools">
+              <button class="btn ghost small" id="clear_base_adv">Temizle</button>
+            </div>
+          </div>
+          
+          <!-- PROPOSITION - FAYDA ve RECOMMENDATION (İki Kolon) -->
+          <div class="two">
+            <div class="cpr-section-card" data-section="benefit">
+              <label for="base_ben">Avantajın hastanın sorununu nasıl rahatlattığını yazın</label>
+              <div class="textarea-wrapper">
+                <textarea id="base_ben" placeholder="Örn: Tedavilerini aksatmadan devam ederler, işlerini yapmaktan geri kalmazlar"></textarea>
+                <button class="voice-btn" data-target="base_ben" title="Sesli giriş">🎤</button>
+              </div>
+              <div class="hint-box" id="hint_base_ben">Hastanın günlük yaşamında nasıl bir iyileşme/rahatlama sağladığını açıklayın.</div>
+              <div class="fieldTools">
+                <button class="btn ghost small" id="clear_base_ben">Temizle</button>
+              </div>
+            </div>
+            
+            <div class="cpr-section-card" data-section="recommendation">
+              <label for="base_rec">Problemle ilişkilendirilmiş reçete öneri cümlenizi yazın</label>
+              <div class="textarea-wrapper">
+                <textarea id="base_rec" placeholder="Örn: Bu tür ataklarda, günde tek doz kullanılan X ile tedaviye bir an önce başlamayı tercih eder misiniz?"></textarea>
+                <button class="voice-btn" data-target="base_rec" title="Sesli giriş">🎤</button>
+              </div>
+              <div class="hint-box" id="hint_base_rec">Hekimden bir aksiyon talep edin (reçeteleme, değiştirme, başlama vb.).</div>
+              <div class="fieldTools">
+                <button class="btn ghost small" id="clear_base_rec">Temizle</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 📱 FAZ 2: DRAFT BUTONLARI EKLENDİ -->
+          <div class="fieldTools" style="justify-content: space-between; margin-top: 20px;">
+            <div>
+              <button class="btn ghost small" id="btnLoadDraft" style="display: none;">📂 Draft Yükle</button>
+              <button class="btn ghost small" id="btnShowDrafts">📋 Draft Listesi</button>
+            </div>
+            <div>
+              <button class="btn ghost small" id="btnClearAllDrafts">🗑️ Tümünü Temizle</button>
+            </div>
+          </div>
+          
+        </div>
+      </details>
+      
+      <!-- 📝 FAZ 1: OTOMATİK CPR ÖZETİ BÖLÜMÜ -->
+      <div class="cpr-section-card" style="margin-top: 20px; border-color: #3b82f6;">
+        <div class="cpr-section-card::before" style="content: '🤖 OTOMATİK CPR ÖZETİ'; position: absolute; top: -10px; left: 16px; background: white; padding: 4px 10px; font-size: 11px; font-weight: 600; color: #1d4ed8; border: 1px solid #3b82f6; border-radius: 20px; letter-spacing: 0.02em; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);">
+          🤖 OTOMATİK CPR ÖZETİ
+        </div>
+        
+        <label for="autoCPR">Birleştirilmiş CPR Metni</label>
+        <div class="textarea-wrapper">
+          <textarea id="autoCPR" placeholder="Claim → Özellik → Avantaj → Fayda → Recommendation birleşmiş CPR metni burada otomatik oluşur." readonly style="min-height: 120px; background-color: #f8fafc; border-color: #3b82f6;"></textarea>
+          <button class="voice-btn" data-target="autoCPR" title="Sesli düzenle">🎤</button>
+        </div>
+        
+        <div class="fieldTools">
+          <button class="btn ghost small" id="copyCPR">📋 Panoya Kopyala</button>
+          <button class="btn ghost small" id="voiceReadCPR">🔊 Sesli Oku</button>
+          <button class="btn ghost small" id="generateAutoCPRBtn">🔄 CPR Oluştur</button>
+        </div>
+        
+        <div class="hint-box show">
+          <strong>🤖 Otomatik CPR Özeti:</strong> Tüm alanları doldurdukça, sistem "[Problem + Etki]... Bu nedenle [Özellik + Avantaj]. Böylece [Fayda]. Bu yüzden [Recommendation]" şeklinde tek bir CPR cümlesi oluşturur.
+        </div>
+      </div>
+      
+      <!-- 4. STİL BAZLI CPR'LAR KARTI (AKORDEON - KAPALI) -->
+      <details class="acc" data-acc="styles" id="acc_styles">
+        <summary>
+          <div class="accTitle">
+            <b><span class="arrow">▶</span> 2) Stil Bazlı CPR'lar</b>
+            <span>Temel CPR'ı koruyarak hedef doktorun öğrenme stiline uyarlayın.</span>
+          </div>
+          <div class="accMeta">
+            <span class="tag" id="mini_styles">4/4 stil kapalı</span>
+          </div>
+        </summary>
+        
+        <div class="accBody">
+          <div class="styleGrid">
+            <!-- Aktivist -->
+            <div class="styleCard" data-style="activist">
+              <div class="styleHeader">
+                <div>
+                  <div class="styleTitle">Aktivist (Değişimci)</div>
+                  <div class="styleBadge">
+                    <span class="icon">🔥</span>
+                    <span>Yeni, deneyimsel, hızlı</span>
+                  </div>
+                </div>
+                <button class="btn small ghost" data-copy-base-to-style="activist">Temel CPR'ı Kopyala</button>
+              </div>
+              <div class="styleBody">
+                Aktivist için vurgu: <b>yeni deneyim, hızlı sonuç, hareket</b>.
+                <ul>
+                  <li>• İlk cümle: Probleme hızlı giriş</li>
+                  <li>• İkinci cümle: Etkiyi dramatize et</li>
+                  <li>• Son cümle: "Hemen" vurgulu Recommendation</li>
+                </ul>
+              </div>
+              <div class="textarea-wrapper">
+                <textarea class="styled-cpr-area" data-style="activist" id="activist_cpr" placeholder="Stile aktar butonuna basın veya buraya yazın... Aktivist CPR için: hızlı, dinamik, aksiyon odaklı ifadeler kullanın."></textarea>
+                <button class="voice-btn" data-target="activist_cpr" title="Sesli düzenle">🎤</button>
+              </div>
+              <div class="feedback styleFeedback">
+                <b>Geri bildirim:</b> Temel CPR ≥ 13 olduğunda bu stil için koçluk mesajları aktifleşecek.
+              </div>
+            </div>
+            
+            <!-- Reflektör -->
+            <div class="styleCard" data-style="reflector">
+              <div class="styleHeader">
+                <div>
+                  <div class="styleTitle">Reflektör (Dikkatli Gözlemci)</div>
+                  <div class="styleBadge reflector">
+                    <span class="icon">👁️</span>
+                    <span>Önce gözlem, sonra karar</span>
+                  </div>
+                </div>
+                <button class="btn small ghost" data-copy-base-to-style="reflector">Temel CPR'ı Kopyala</button>
+              </div>
+              <div class="styleBody">
+                Reflektör için vurgu: <b>veri, gözlem, sakin analiz</b>.
+                <ul>
+                  <li>• İlk cümle: Problemi tablo gibi betimle</li>
+                  <li>• İkinci cümle: Etkiyi gözleme dayalı anlat</li>
+                  <li>• Son cümle: "Düşündüğünüzde..." ile Recommendation</li>
+                </ul>
+              </div>
+              <div class="textarea-wrapper">
+                <textarea class="styled-cpr-area" data-style="reflector" id="reflector_cpr"
+                  placeholder="Stile aktar butonuna basın veya buraya yazın... Reflektör CPR için: sakin, gözleme dayalı, veri referanslı ifadeler kullanın." 
+                 ></textarea>
+                <button class="voice-btn" data-target="reflector_cpr" title="Sesli düzenle">🎤</button>
+              </div>
+              <div class="feedback styleFeedback">
+                <b>Geri bildirim:</b> Temel CPR ≥ 13 olduğunda bu stil için koçluk mesajları aktifleşecek.
+              </div>
+            </div>
+            
+            <!-- Teorist -->
+            <div class="styleCard" data-style="theorist">
+              <div class="styleHeader">
+                <div>
+                  <div class="styleTitle">Teorist (Sistematik Düşünen)</div>
+                  <div class="styleBadge theorist">
+                    <span class="icon">📐</span>
+                    <span>Kılavuz, mekanizma, sebep-sonuç</span>
+                  </div>
+                </div>
+                <button class="btn small ghost" data-copy-base-to-style="theorist">Temel CPR'ı Kopyala</button>
+              </div>
+              <div class="styleBody">
+                Teorist için vurgu: <b>kılavuz, mekanizma, rasyonel gerekçe</b>.
+                <ul>
+                  <li>• İlk cümle: Problemi tanı-tedavi ilişkisiyle aç</li>
+                  <li>• İkinci cümle: Etkiyi patofizyoloji ile ilişkilendir</li>
+                  <li>• Son cümle: Kılavuz uyumu vurgulu Recommendation</li>
+                </ul>
+              </div>
+              <div class="textarea-wrapper">
+                <textarea class="styled-cpr-area" data-style="theorist" id="theorist_cpr"
+                  placeholder="Stile aktar butonuna basın veya buraya yazın... Teorist CPR için: sistematik, kılavuz referanslı ve mekanizma temelli ifadeler kullanın." 
+                 ></textarea>
+                <button class="voice-btn" data-target="theorist_cpr" title="Sesli düzenle">🎤</button>
+              </div>
+              <div class="feedback styleFeedback">
+                <b>Geri bildirim:</b> Temel CPR ≥ 13 olduğunda bu stil için koçluk mesajları aktifleşecek.
+              </div>
+            </div>
+            
+            <!-- Pragmatist -->
+            <div class="styleCard" data-style="pragmatist">
+              <div class="styleHeader">
+                <div>
+                  <div class="styleTitle">Pragmatist (Uygulamacı)</div>
+                  <div class="styleBadge pragmatist">
+                    <span class="icon">🛠️</span>
+                    <span>Pratik, uygulanabilir, "işe yarar mı?"</span>
+                  </div>
+                </div>
+                <button class="btn small ghost" data-copy-base-to-style="pragmatist">Temel CPR'ı Kopyala</button>
+              </div>
+              <div class="styleBody">
+                Pragmatist için vurgu: <b>pratiklik, iş akışı, kolaylık</b>.
+                <ul>
+                  <li>• İlk cümle: Problemi günlük pratikten örnekle</li>
+                  <li>• İkinci cümle: Etkiyi iş yükü ve süreklilikle bağla</li>
+                  <li>• Son cümle: Rutin pratiğe nasıl oturduğunu anlatan Recommendation</li>
+                </ul>
+              </div>
+              
+              <!-- ADIM 1: TEK CPR Alanı -->
+              <div class="style-badge pragmatist">🔄 Uygulamacı CPR'ınız</div>
+              <div class="textarea-wrapper">
+                <textarea class="styled-cpr-area" data-style="pragmatist" id="pragmatist_cpr"
+                  placeholder="Stile aktar butonuna basın veya buraya yazın... Pragmatist CPR için: Pratik, uygulanabilir, "nasıl yapılır" odaklı ifadeler kullanın." 
+                 ></textarea>
+                <button class="voice-btn" data-target="pragmatist_cpr" title="Sesli düzenle">🎤</button>
+              </div>
+              
+              <div class="feedback styleFeedback">
+                <b>Geri bildirim:</b> Temel CPR onaylandıktan sonra bu panel aktifleşir.
+              </div>
+            </div>
+          </div>
+          
+          <p class="footerNote">
+            Mobil pratik: Temel CPR'ı geç → Temel panel kapanır → stile gir → "Temel CPR'ı Kopyala" → sadece gerekli kelimeleri değiştir → kontrol et.
+            <br><b>📱 ADIM 5 YENİLİKLERİ:</b> Sesli giriş, mobil klavye kısayolları, offline draft kaydetme aktif!
+          </p>
+        </div>
+      </details>
+    </main>
+  </div>
+  
+  <!-- 📱 FAZ 2: MOBİL BİLDİRİM ALANI -->
+  <div id="mobileNotificationArea"></div>
+  
+  <script>
+  // ============================================
+  // 📱 FAZ 1: OTOMATİK CPR ÖZETİ ÜRETİMİ (GÜNCELLENDİ)
+  // ============================================
+  
+  const AutoCPRGenerator = {
+    generate: function() {
+      const problem = document.getElementById('base_claim_problem')?.value.trim() || '';
+      const effect = document.getElementById('base_claim_effect')?.value.trim() || '';
+      const feature = document.getElementById('base_feat')?.value.trim() || '';
+      const advantage = document.getElementById('base_adv')?.value.trim() || '';
+      const benefit = document.getElementById('base_ben')?.value.trim() || '';
+      const recommendation = document.getElementById('base_rec')?.value.trim() || '';
+      
+      if (!problem && !effect && !feature && !advantage && !benefit && !recommendation) {
+        return '';
+      }
+      
+      let autoCPR = '';
+      
+      if (problem && effect) {
+        autoCPR += `"${problem} Bu durum ${effect.toLowerCase()}... `;
+      } else if (problem) {
+        autoCPR += `"${problem}... `;
+      } else if (effect) {
+        autoCPR += `"${effect}... `;
+      }
+      
+      if (feature && advantage) {
+        autoCPR += `Bu nedenle ${feature}, ${advantage.toLowerCase()}. `;
+      } else if (feature) {
+        autoCPR += `Bu nedenle ${feature}. `;
+      } else if (advantage) {
+        autoCPR += `Bu nedenle ${advantage}. `;
+      }
+      
+      if (benefit) {
+        autoCPR += `Böylece ${benefit}. `;
+      }
+      
+      if (recommendation) {
+        const hasQuestionMark = recommendation.trim().endsWith('?');
+        autoCPR += `Bu yüzden ${recommendation}${!hasQuestionMark ? '?' : ''}"`;
+      } else {
+        autoCPR = autoCPR.trim();
+        if (!autoCPR.endsWith('"')) {
+          autoCPR += '"';
+        }
+      }
+      
+      return autoCPR;
+    },
+    
+    updateAutoCPR: function() {
+      const autoCPR = this.generate();
+      const autoCPRTextarea = document.getElementById('autoCPR');
+      
+      if (autoCPRTextarea) {
+        autoCPRTextarea.value = autoCPR;
+        
+        const voiceReadBtn = document.getElementById('voiceReadCPR');
+        if (voiceReadBtn && autoCPR.length > 20) {
+          voiceReadBtn.disabled = false;
+        }
+      }
+    },
+    
+    copyToClipboard: function() {
+      const autoCPR = document.getElementById('autoCPR')?.value;
+      
+      if (!autoCPR || autoCPR.trim().length < 10) {
+        MobileFeatures.showNotification('Kopyalanacak CPR metni yok', 'warning');
         return;
       }
-      const block = readStyleBlock(panel);
-      const cpr = scoreCPR(block);
-      const sty = scoreStyle(styleKey, block);
+      
+      navigator.clipboard.writeText(autoCPR).then(() => {
+        MobileFeatures.showNotification('CPR panoya kopyalandı', 'success');
+      }).catch(err => {
+        console.error('Kopyalama hatası:', err);
+        MobileFeatures.showNotification('Kopyalama başarısız', 'error');
+      });
+    },
+    
+    readAloud: function() {
+      const autoCPR = document.getElementById('autoCPR')?.value;
+      
+      if (!autoCPR || autoCPR.trim().length < 10) {
+        MobileFeatures.showNotification('Okunacak CPR metni yok', 'warning');
+        return;
+      }
+      
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(autoCPR);
+        utterance.lang = 'tr-TR';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        
+        utterance.onstart = () => {
+          MobileFeatures.showNotification('CPR okunuyor...', 'info');
+        };
+        
+        utterance.onend = () => {
+          MobileFeatures.showNotification('CPR okuma tamamlandı', 'success');
+        };
+        
+        speechSynthesis.speak(utterance);
+      } else {
+        MobileFeatures.showNotification('Tarayıcınız sesli okumayı desteklemiyor', 'warning');
+      }
+    },
+    
+    init: function() {
+      const textareas = [
+        'base_claim_problem', 'base_claim_effect', 
+        'base_feat', 'base_adv', 'base_ben', 'base_rec'
+      ];
+      
+      textareas.forEach(id => {
+        const textarea = document.getElementById(id);
+        if (textarea) {
+          textarea.addEventListener('input', () => {
+            this.updateAutoCPR();
+          });
+        }
+      });
+      
+      const generateBtn = document.getElementById('generateAutoCPRBtn');
+      if (generateBtn) {
+        generateBtn.addEventListener('click', () => {
+          this.updateAutoCPR();
+          MobileFeatures.showNotification('CPR otomatik oluşturuldu', 'success');
+        });
+      }
+      
+      const copyBtn = document.getElementById('copyCPR');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          this.copyToClipboard();
+        });
+      }
+      
+      const voiceReadBtn = document.getElementById('voiceReadCPR');
+      if (voiceReadBtn) {
+        voiceReadBtn.addEventListener('click', () => {
+          this.readAloud();
+        });
+      }
+      
+      setTimeout(() => {
+        this.updateAutoCPR();
+      }, 500);
+      
+      console.log('✅ Otomatik CPR Üretimi sistemi hazır');
+    }
+  };
+  
+  // ============================================
+  // 📄 YENİ: TÜM RAPOR PDF SİSTEMİ (KAPSAMLI)
+  // ============================================
+  
+  const ComprehensivePDFReport = {
+    generateFullReport: function() {
+      try {
+        const fullReportBtn = document.getElementById('fullReportPDF');
+        const originalText = fullReportBtn.innerHTML;
+        const originalBackground = fullReportBtn.style.background;
+        
+        fullReportBtn.innerHTML = '📄 Oluşturuluyor...';
+        fullReportBtn.style.background = '#9ca3af';
+        fullReportBtn.style.cursor = 'wait';
+        
+        setTimeout(() => {
+          const reportData = this.collectAllData();
+          const docDefinition = this.createFullDocumentDefinition(reportData);
+          
+          const fileName = `FAST_CPR_Tum_Rapor_${new Date().toISOString().slice(0, 10)}.pdf`;
+          pdfMake.createPdf(docDefinition).download(fileName);
+          
+          MobileFeatures.showNotification('Tüm rapor PDF olarak indiriliyor...', 'success');
+          
+          fullReportBtn.innerHTML = originalText;
+          fullReportBtn.style.background = originalBackground;
+          fullReportBtn.style.cursor = 'pointer';
+        }, 500);
+        
+      } catch (error) {
+        console.error('PDF oluşturma hatası:', error);
+        MobileFeatures.showNotification('PDF oluşturulurken hata oluştu', 'error');
+        
+        const fullReportBtn = document.getElementById('fullReportPDF');
+        fullReportBtn.innerHTML = '📄 Tüm Raporu PDF\'e Aktar';
+        fullReportBtn.style.background = '#3b82f6';
+        fullReportBtn.style.cursor = 'pointer';
+      }
+    },
+    
+    collectAllData: function() {
+      return {
+        // A. ZİYARET ÖNCESİ HAZIRLIK
+        preparation: {
+          promoContext: document.getElementById('promoContext')?.value.trim() || '—',
+          learningStyle: document.getElementById('learningStyle')?.value.trim() || '—',
+          promoGoal: document.getElementById('promoGoal')?.value.trim() || '—',
+          flexBehaviors: document.getElementById('flexBehaviors')?.value.trim() || '—'
+        },
+        
+        // B. ÜRÜN ODAK & HAZIRLIK
+        productPrep: {
+          productName: document.getElementById('productNameInput')?.value.trim() || '—',
+          competitorName: document.getElementById('competitorNameInput')?.value.trim() || '—',
+          superiority: document.getElementById('superiorityInput')?.value.trim() || '—',
+          benefits: document.getElementById('benefitTextArea')?.value.trim() || '—'
+        },
+        
+        // C. TEMEL CPR
+        baseCPR: {
+          claim_problem: document.getElementById('base_claim_problem')?.value.trim() || '—',
+          claim_effect: document.getElementById('base_claim_effect')?.value.trim() || '—',
+          feature: document.getElementById('base_feat')?.value.trim() || '—',
+          advantage: document.getElementById('base_adv')?.value.trim() || '—',
+          benefit: document.getElementById('base_ben')?.value.trim() || '—',
+          recommendation: document.getElementById('base_rec')?.value.trim() || '—'
+        },
+        
+        // D. STİL CPR'LARI
+        styleCPRs: {
+          activist: document.getElementById('activist_cpr')?.value.trim() || '—',
+          reflector: document.getElementById('reflector_cpr')?.value.trim() || '—',
+          theorist: document.getElementById('theorist_cpr')?.value.trim() || '—',
+          pragmatist: document.getElementById('pragmatist_cpr')?.value.trim() || '—'
+        },
+        
+        // Metadata
+        generatedAt: new Date().toLocaleString('tr-TR'),
+        date: new Date().toLocaleDateString('tr-TR'),
+        time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+      };
+    },
+    
+    createFullDocumentDefinition: function(data) {
+      return {
+        pageSize: 'A4',
+        pageMargins: [40, 80, 40, 60],
+        
+        // HEADER: Başlık ve Tarih
+        header: function(currentPage, pageCount) {
+          return [
+            // BAŞLIK: FAST CPR Koçu (üst orta)
+            {
+              text: 'FAST CPR KOÇU',
+              style: 'mainHeader',
+              alignment: 'center',
+              margin: [0, 20, 0, 0]
+            },
+            
+            // TARİH: Sağ üst köşe, başlıktan 20px aşağıda
+            {
+              text: data.date + ' ' + data.time,
+              style: 'dateHeader',
+              alignment: 'right',
+              margin: [0, 40, 40, 0]
+            }
+          ];
+        },
+        
+        content: [
+          // 1. ZİYARET ÖNCESİ HAZIRLIK BÖLÜMÜ
+          {
+            text: '1. ZİYARET ÖNCESİ HAZIRLIK',
+            style: 'sectionHeader',
+            pageBreak: 'before',
+            margin: [0, 30, 0, 10]
+          },
+          this.createPreparationSection(data.preparation),
+          
+          // 2. ÜRÜN ODAK & HAZIRLIK BÖLÜMÜ
+          {
+            text: '2. ÜRÜN ODAK & HAZIRLIK',
+            style: 'sectionHeader',
+            margin: [0, 20, 0, 10]
+          },
+          this.createProductPrepSection(data.productPrep),
+          
+          // 3. TEMEL CPR BÖLÜMÜ
+          {
+            text: '3. TEMEL CPR',
+            style: 'sectionHeader',
+            margin: [0, 20, 0, 10]
+          },
+          this.createBaseCPRSection(data.baseCPR),
+          
+          // 4. STİL CPR'LARI BÖLÜMÜ
+          {
+            text: '4. ÖĞRENME STİLLERİNE GÖRE CPR\'LAR',
+            style: 'sectionHeader',
+            margin: [0, 20, 0, 10]
+          },
+          this.createStyleCPRSection(data.styleCPRs),
+          
+          // FOOTER NOTU
+          {
+            text: 'FAST CPR Koçu tarafından oluşturulmuştur • ' + data.generatedAt,
+            style: 'footer',
+            margin: [0, 30, 0, 0]
+          }
+        ],
+        
+        styles: {
+          // ANA BAŞLIK
+          mainHeader: {
+            fontSize: 20,
+            bold: true,
+            color: '#1d4ed8'
+          },
+          
+          // TARİH BAŞLIĞI
+          dateHeader: {
+            fontSize: 10,
+            color: '#666',
+            italics: true
+          },
+          
+          // BÖLÜM BAŞLIKLARI
+          sectionHeader: {
+            fontSize: 14,
+            bold: true,
+            color: '#1e40af',
+            background: '#eff6ff',
+            padding: [8, 4],
+            border: [1, 'solid', '#dbeafe'],
+            marginBottom: 8
+          },
+          
+          // ALT BAŞLIKLAR
+          subsection: {
+            fontSize: 12,
+            bold: true,
+            color: '#374151',
+            margin: [0, 8, 0, 4]
+          },
+          
+          // İÇERİK METNİ
+          contentText: {
+            fontSize: 11,
+            lineHeight: 1.4,
+            margin: [0, 0, 0, 6]
+          },
+          
+          // İTALİK CPR METNİ (stiller için)
+          italicCPR: {
+            fontSize: 11,
+            italics: true,
+            lineHeight: 1.4,
+            background: '#f8fafc',
+            padding: [8, 10],
+            border: [1, 'dashed', '#e5e7eb'],
+            margin: [0, 4, 0, 12]
+          },
+          
+          // FOOTER
+          footer: {
+            fontSize: 9,
+            color: '#6b7280',
+            alignment: 'center',
+            italics: true
+          },
+          
+          // LABEL (etiket)
+          label: {
+            fontSize: 11,
+            bold: true,
+            color: '#4b5563'
+          },
+          
+          // VALUE (değer)
+          value: {
+            fontSize: 11,
+            color: '#111827',
+            margin: [0, 0, 0, 8]
+          }
+        }
+      };
+    },
+    
+    createPreparationSection: function(prep) {
+      return [
+        {
+          text: [{ text: 'Doktor/Eczacının Sosyal Stili: ', style: 'label' }, prep.promoContext],
+          style: 'contentText'
+        },
+        {
+          text: [{ text: 'Esneme Davranışları: ', style: 'label' }, prep.flexBehaviors],
+          style: 'contentText'
+        },
+        {
+          text: [{ text: 'Öğrenme Stili: ', style: 'label' }, prep.learningStyle],
+          style: 'contentText'
+        },
+        {
+          text: [{ text: 'SMART CPR Hedefi: ', style: 'label' }, prep.promoGoal],
+          style: 'contentText',
+          margin: [0, 0, 0, 16]
+        }
+      ];
+    },
+    
+    createProductPrepSection: function(product) {
+      return [
+        {
+          text: [{ text: 'Ürün: ', style: 'label' }, product.productName],
+          style: 'contentText'
+        },
+        {
+          text: [{ text: 'Rakip: ', style: 'label' }, product.competitorName],
+          style: 'contentText'
+        },
+        {
+          text: [{ text: 'Üstün Yön: ', style: 'label' }, product.superiority],
+          style: 'contentText'
+        },
+        {
+          text: [{ text: 'Sunulacak Fayda: ', style: 'label' }, product.benefits],
+          style: 'contentText',
+          margin: [0, 0, 0, 16]
+        }
+      ];
+    },
+    
+    createBaseCPRSection: function(cpr) {
+      return [
+        {
+          text: 'CLAIM - Problem:',
+          style: 'subsection'
+        },
+        {
+          text: cpr.claim_problem,
+          style: 'value'
+        },
+        {
+          text: 'CLAIM - Etki:',
+          style: 'subsection'
+        },
+        {
+          text: cpr.claim_effect,
+          style: 'value'
+        },
+        {
+          text: 'PROPOSITION - Özellik:',
+          style: 'subsection'
+        },
+        {
+          text: cpr.feature,
+          style: 'value'
+        },
+        {
+          text: 'PROPOSITION - Avantaj:',
+          style: 'subsection'
+        },
+        {
+          text: cpr.advantage,
+          style: 'value'
+        },
+        {
+          text: 'PROPOSITION - Fayda:',
+          style: 'subsection'
+        },
+        {
+          text: cpr.benefit,
+          style: 'value'
+        },
+        {
+          text: 'RECOMMENDATION:',
+          style: 'subsection'
+        },
+        {
+          text: cpr.recommendation,
+          style: 'value',
+          margin: [0, 0, 0, 16]
+        }
+      ];
+    },
+    
+    createStyleCPRSection: function(styles) {
+      return [
+        // AKTİVİST CPR
+        {
+          text: 'Aktivist CPR',
+          style: 'subsection'
+        },
+        {
+          text: styles.activist,
+          style: 'italicCPR'
+        },
+        
+        // REFLEKTÖR CPR
+        {
+          text: 'Reflektör CPR',
+          style: 'subsection'
+        },
+        {
+          text: styles.reflector,
+          style: 'italicCPR'
+        },
+        
+        // TEORİST CPR
+        {
+          text: 'Teorist CPR',
+          style: 'subsection'
+        },
+        {
+          text: styles.theorist,
+          style: 'italicCPR'
+        },
+        
+        // PRAGMATİST CPR
+        {
+          text: 'Pragmatist CPR',
+          style: 'subsection'
+        },
+        {
+          text: styles.pragmatist,
+          style: 'italicCPR',
+          margin: [0, 4, 0, 0]
+        }
+      ];
+    }
+  };
+  
+  // ============================================
+  // 📱 FAZ 4: SESLİ GİRİŞ GELİŞTİRMELERİ
+  // ============================================
+  
+  const MobileFeatures = {
+    // 1. GELİŞMİŞ SESLİ GİRİŞ SİSTEMİ
+    SpeechToText: {
+      recognition: null,
+      isListening: false,
+      currentTarget: null,
+      voiceIndicator: null,
+      
+      init: function() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          this.recognition = new SpeechRecognition();
+          this.recognition.continuous = false;
+          this.recognition.interimResults = true;
+          this.recognition.lang = 'tr-TR';
+          this.recognition.maxAlternatives = 3;
+          
+          this.recognition.onstart = () => {
+            this.isListening = true;
+            this.showListeningStatus(true);
+            this.playSound('start');
+            this.showVoiceIndicator();
+          };
+          
+          this.recognition.onresult = (event) => {
+            let finalTranscript = '';
+            let interimTranscript = '';
+            
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+              if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+                this.playSound('success');
+              } else {
+                interimTranscript += event.results[i][0].transcript;
+              }
+            }
+            
+            if (this.currentTarget && (finalTranscript || interimTranscript)) {
+              const textarea = document.getElementById(this.currentTarget);
+              if (textarea) {
+                if (finalTranscript) {
+                  const currentText = textarea.value;
+                  textarea.value = currentText + (currentText ? ' ' : '') + finalTranscript;
+                  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                  
+                  if (typeof AutoCPRGenerator !== 'undefined') {
+                    AutoCPRGenerator.updateAutoCPR();
+                  }
+                  
+                  this.showVoiceFeedback('✓ Eklendi');
+                }
+                
+                if (interimTranscript && this.voiceIndicator) {
+                  this.voiceIndicator.querySelector('.voice-text').textContent = interimTranscript;
+                }
+              }
+            }
+          };
+          
+          this.recognition.onerror = (event) => {
+            console.error('Ses tanıma hatası:', event.error);
+            this.showNotification('Ses tanıma hatası: ' + this.getErrorMessage(event.error), 'error');
+            this.playSound('error');
+            this.hideVoiceIndicator();
+          };
+          
+          this.recognition.onend = () => {
+            this.isListening = false;
+            this.showListeningStatus(false);
+            this.hideVoiceIndicator();
+            this.currentTarget = null;
+          };
+          
+          console.log('✅ Gelişmiş sesli giriş sistemi hazır');
+        } else {
+          console.warn('⚠️ Bu tarayıcı ses tanımayı desteklemiyor');
+          document.querySelectorAll('.voice-btn').forEach(btn => {
+            btn.style.opacity = '0.5';
+            btn.title = 'Sesli giriş desteklenmiyor';
+            btn.disabled = true;
+          });
+        }
+      },
+      
+      startListening: function(targetId) {
+        if (!this.recognition) {
+          this.showNotification('Sesli giriş desteklenmiyor', 'error');
+          return;
+        }
+        
+        if (this.isListening && this.currentTarget === targetId) {
+          this.stopListening();
+          return;
+        }
+        
+        this.currentTarget = targetId;
+        try {
+          this.recognition.start();
+        } catch (error) {
+          console.error('Ses tanıma başlatma hatası:', error);
+          this.showNotification('Ses tanıma başlatılamadı', 'error');
+        }
+      },
+      
+      stopListening: function() {
+        if (this.recognition && this.isListening) {
+          this.recognition.stop();
+        }
+      },
+      
+      toggleListening: function(targetId) {
+        if (this.isListening && this.currentTarget === targetId) {
+          this.stopListening();
+        } else {
+          this.startListening(targetId);
+        }
+      },
+      
+      showListeningStatus: function(isListening) {
+        const buttons = document.querySelectorAll('.voice-btn');
+        buttons.forEach(btn => {
+          if (btn.dataset.target === this.currentTarget) {
+            btn.classList.toggle('listening', isListening);
+            btn.innerHTML = isListening ? '🔴' : '🎤';
+            btn.title = isListening ? 'Dinleniyor... (durdurmak için tıkla)' : 'Sesli giriş';
+          }
+        });
+      },
+      
+      showVoiceIndicator: function() {
+        if (this.voiceIndicator) {
+          this.voiceIndicator.remove();
+        }
+        
+        this.voiceIndicator = document.createElement('div');
+        this.voiceIndicator.className = 'voice-indicator';
+        this.voiceIndicator.innerHTML = `
+          <div class="pulse"></div>
+          <span class="voice-text">Dinleniyor... Konuşmaya başlayın</span>
+          <button class="btn ghost small" id="stopVoiceBtn" style="margin-left: 10px; padding: 2px 8px; font-size: 11px;">Durdur</button>
+        `;
+        
+        document.body.appendChild(this.voiceIndicator);
+        
+        document.getElementById('stopVoiceBtn').addEventListener('click', () => {
+          this.stopListening();
+        });
+      },
+      
+      hideVoiceIndicator: function() {
+        if (this.voiceIndicator) {
+          this.voiceIndicator.remove();
+          this.voiceIndicator = null;
+        }
+      },
+      
+      showVoiceFeedback: function(message) {
+        const textarea = document.getElementById(this.currentTarget);
+        if (!textarea) return;
+        
+        const feedback = document.createElement('div');
+        feedback.className = 'voice-feedback';
+        feedback.textContent = message;
+        
+        const wrapper = textarea.parentElement;
+        wrapper.appendChild(feedback);
+        
+        setTimeout(() => {
+          if (feedback.parentElement) {
+            feedback.remove();
+          }
+        }, 1500);
+      },
+      
+      playSound: function(type) {
+        try {
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          
+          if (type === 'start') {
+            const oscillator = audioContext.createOscillator();
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.connect(audioContext.destination);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.1);
+          } else if (type === 'success') {
+            const oscillator = audioContext.createOscillator();
+            oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
+            oscillator.connect(audioContext.destination);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.1);
+          }
+        } catch (error) {
+          // Ses API'si desteklenmiyorsa sessiz devam et
+        }
+      },
+      
+      getErrorMessage: function(errorCode) {
+        const errors = {
+          'no-speech': 'Konuşma algılanamadı',
+          'audio-capture': 'Mikrofon erişimi yok',
+          'not-allowed': 'Mikrofon izni verilmedi',
+          'network': 'Ağ hatası',
+          'aborted': 'İşlem iptal edildi',
+          'service-not-allowed': 'Servis izni yok'
+        };
+        return errors[errorCode] || 'Bilinmeyen hata';
+      },
+      
+      showNotification: function(message, type = 'info') {
+        MobileFeatures.showNotification(message, type);
+      }
+    },
+    
+    // 2. BAĞLANTI DURUM YÖNETİCİSİ
+    ConnectivityManager: {
+      init: function() {
+        const offlineStatus = document.getElementById('offlineStatus');
+        const connectivityText = document.getElementById('connectivityText');
+        
+        if (!offlineStatus || !connectivityText) return;
+        
+        this.updateStatus();
+        
+        window.addEventListener('online', () => {
+          this.updateStatus();
+          this.showNotification('İnternet bağlantısı yeniden sağlandı', 'success');
+          
+          setTimeout(() => {
+            if (typeof MobileFeatures.DraftSystem !== 'undefined') {
+              MobileFeatures.DraftSystem.saveDraft(false);
+            }
+          }, 1000);
+        });
+        
+        window.addEventListener('offline', () => {
+          this.updateStatus();
+          this.showNotification('İnternet bağlantısı kesildi. Offline mod aktif.', 'warning');
+        });
+        
+        console.log('✅ Connectivity Manager hazır');
+      },
+      
+      updateStatus: function() {
+        const offlineStatus = document.getElementById('offlineStatus');
+        const connectivityText = document.getElementById('connectivityText');
+        
+        if (!offlineStatus || !connectivityText) return;
+        
+        if (navigator.onLine) {
+          offlineStatus.classList.remove('offline');
+          offlineStatus.classList.add('online');
+          connectivityText.textContent = 'Çevrimiçi';
+          offlineStatus.title = 'İnternet bağlantısı aktif';
+          
+          setTimeout(() => {
+            if (navigator.onLine) {
+              offlineStatus.style.opacity = '0';
+              offlineStatus.style.transform = 'translateY(-10px)';
+              setTimeout(() => {
+                if (navigator.onLine) {
+                  offlineStatus.style.display = 'none';
+                }
+              }, 300);
+            }
+          }, 3000);
+        } else {
+          offlineStatus.classList.remove('online');
+          offlineStatus.classList.add('offline');
+          connectivityText.textContent = 'Çevrimdışı';
+          offlineStatus.title = 'İnternet bağlantısı yok';
+          offlineStatus.style.display = 'flex';
+          offlineStatus.style.opacity = '1';
+          offlineStatus.style.transform = 'translateY(0)';
+        }
+      },
+      
+      showNotification: function(message, type = 'info') {
+        MobileFeatures.showNotification(message, type);
+      }
+    },
+    
+    // 3. SESLİ OKUMA SİSTEMİ
+    TextToSpeech: {
+      init: function() {
+        const readBtn = document.getElementById('voiceReadCPR');
+        if (readBtn && 'speechSynthesis' in window) {
+          readBtn.style.display = 'inline-block';
+        } else if (readBtn) {
+          readBtn.style.display = 'none';
+        }
+        console.log('✅ Sesli okuma sistemi hazır');
+      },
+      
+      readCPR: function() {
+        const cprText = document.getElementById('autoCPR')?.value;
+        if (!cprText || cprText.trim().length < 10) {
+          this.showNotification('Okunacak CPR metni bulunamadı', 'warning');
+          return;
+        }
+        
+        if ('speechSynthesis' in window) {
+          speechSynthesis.cancel();
+          
+          const utterance = new SpeechSynthesisUtterance(cprText);
+          utterance.lang = 'tr-TR';
+          utterance.rate = 0.9;
+          utterance.pitch = 1.0;
+          utterance.volume = 1.0;
+          
+          utterance.onstart = () => {
+            this.showNotification('CPR okunuyor...', 'info');
+            document.getElementById('voiceReadCPR').innerHTML = '⏸️ Durdur';
+          };
+          
+          utterance.onend = () => {
+            this.showNotification('CPR okuma tamamlandı', 'success');
+            document.getElementById('voiceReadCPR').innerHTML = '🔊 Sesli Oku';
+          };
+          
+          utterance.onerror = () => {
+            this.showNotification('Okuma sırasında hata oluştu', 'error');
+            document.getElementById('voiceReadCPR').innerHTML = '🔊 Sesli Oku';
+          };
+          
+          speechSynthesis.speak(utterance);
+          
+          const voiceBtn = document.getElementById('voiceReadCPR');
+          voiceBtn.onclick = () => {
+            if (speechSynthesis.speaking) {
+              speechSynthesis.cancel();
+              voiceBtn.innerHTML = '🔊 Sesli Oku';
+              this.showNotification('Okuma durduruldu', 'info');
+            } else {
+              this.readCPR();
+            }
+          };
+        } else {
+          this.showNotification('Tarayıcınız sesli okumayı desteklemiyor', 'warning');
+        }
+      },
+      
+      showNotification: function(message, type = 'info') {
+        MobileFeatures.showNotification(message, type);
+      }
+    },
+    
+    // 4. KOPYALAMA SİSTEMİ
+    ClipboardSystem: {
+      init: function() {
+        const copyBtn = document.getElementById('copyCPR');
+        if (copyBtn) {
+          copyBtn.addEventListener('click', () => {
+            this.copyCPRToClipboard();
+          });
+        }
+        
+        const toolbarCopyBtn = document.querySelector('.mobile-toolbar button[data-action="copy"]');
+        if (toolbarCopyBtn) {
+          toolbarCopyBtn.addEventListener('click', () => {
+            this.copyActiveTextarea();
+          });
+        }
+        console.log('✅ Kopyalama sistemi hazır');
+      },
+      
+      copyCPRToClipboard: function() {
+        const autoCPR = document.getElementById('autoCPR')?.value;
+        
+        if (!autoCPR || autoCPR.trim().length < 10) {
+          this.showNotification('Kopyalanacak CPR metni yok', 'warning');
+          return;
+        }
+        
+        this.copyTextToClipboard(autoCPR, 'CPR panoya kopyalandı');
+      },
+      
+      copyActiveTextarea: function() {
+        const activeTextarea = document.activeElement;
+        if (!activeTextarea || activeTextarea.tagName !== 'TEXTAREA') {
+          this.showNotification('Önce bir metin alanına tıklayın', 'info');
+          return;
+        }
+        
+        const text = activeTextarea.value;
+        if (!text || text.trim().length === 0) {
+          this.showNotification('Kopyalanacak metin yok', 'warning');
+          return;
+        }
+        
+        this.copyTextToClipboard(text, 'Metin panoya kopyalandı');
+      },
+      
+      copyTextToClipboard: function(text, successMessage) {
+        if (!navigator.clipboard) {
+          this.fallbackCopyTextToClipboard(text, successMessage);
+          return;
+        }
+        
+        navigator.clipboard.writeText(text).then(() => {
+          this.showNotification(successMessage, 'success');
+        }).catch(err => {
+          console.error('Kopyalama hatası:', err);
+          this.fallbackCopyTextToClipboard(text, successMessage);
+        });
+      },
+      
+      fallbackCopyTextToClipboard: function(text, successMessage) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          const successful = document.execCommand('copy');
+          if (successful) {
+            this.showNotification(successMessage, 'success');
+          } else {
+            this.showNotification('Kopyalama başarısız', 'error');
+          }
+        } catch (err) {
+          console.error('Fallback kopyalama hatası:', err);
+          this.showNotification('Kopyalama başarısız', 'error');
+        }
+        
+        document.body.removeChild(textArea);
+      },
+      
+      showNotification: function(message, type = 'info') {
+        MobileFeatures.showNotification(message, type);
+      }
+    },
+    
+    // 5. PDF RAPOR SİSTEMİ (ESKİ - KALDIRILDI)
+    PDFReportSystem: {
+      init: function() {
+        console.log('✅ PDF Rapor sistemi hazır (eski sistem)');
+      }
+    },
+    
+    // 6. DRAFT SİSTEMİ
+    DraftSystem: {
+      storageKey: 'fastcpr_drafts_v2',
+      autoSaveInterval: null,
+      lastSaveTime: null,
+      
+      init: function() {
+        this.setupAutoSave();
+        this.setupDraftButtons();
+        this.updateDraftIndicator();
+        
+        window.addEventListener('load', () => {
+          const hasDrafts = this.hasDrafts();
+          if (hasDrafts) {
+            this.showNotification('Kayıtlı draft bulundu. Yüklemek için "Draft Listesi" butonunu kullanın.', 'info');
+          }
+        });
+        
+        window.addEventListener('beforeunload', (e) => {
+          this.saveDraft();
+        });
+        
+        console.log('✅ Draft Sistemi hazır');
+      },
+      
+      setupAutoSave: function() {
+        this.autoSaveInterval = setInterval(() => {
+          this.saveDraft(false);
+        }, 30000);
+        
+        document.querySelectorAll('textarea').forEach(textarea => {
+          textarea.addEventListener('input', () => {
+            this.updateDraftIndicator();
+          });
+        });
+      },
+      
+      setupDraftButtons: function() {
+        const saveBtn = document.getElementById('btnSaveDraft');
+        const loadBtn = document.getElementById('btnLoadDraft');
+        const showDraftsBtn = document.getElementById('btnShowDrafts');
+        const clearAllBtn = document.getElementById('btnClearAllDrafts');
+        
+        if (saveBtn) {
+          saveBtn.addEventListener('click', () => {
+            this.saveDraft(true);
+          });
+        }
+        
+        if (showDraftsBtn) {
+          showDraftsBtn.addEventListener('click', () => {
+            this.showDraftSelector();
+          });
+        }
+        
+        if (clearAllBtn) {
+          clearAllBtn.addEventListener('click', () => {
+            if (confirm('Tüm draft\'ları silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
+              localStorage.removeItem(this.storageKey);
+              this.updateDraftIndicator();
+              this.showNotification('Tüm draft\'lar silindi', 'success');
+            }
+          });
+        }
+      },
+      
+      getCurrentData: function() {
+        return {
+          claim_problem: document.getElementById('base_claim_problem')?.value || '',
+          claim_effect: document.getElementById('base_claim_effect')?.value || '',
+          feature: document.getElementById('base_feat')?.value || '',
+          advantage: document.getElementById('base_adv')?.value || '',
+          benefit: document.getElementById('base_ben')?.value || '',
+          recommendation: document.getElementById('base_rec')?.value || '',
+          autoCPR: document.getElementById('autoCPR')?.value || '',
+          
+          promoContext: document.getElementById('promoContext')?.value || '',
+          learningStyle: document.getElementById('learningStyle')?.value || '',
+          promoGoal: document.getElementById('promoGoal')?.value || '',
+          flexBehaviors: document.getElementById('flexBehaviors')?.value || '',
+          
+          productName: document.getElementById('productNameInput')?.value || '',
+          competitorName: document.getElementById('competitorNameInput')?.value || '',
+          superiority: document.getElementById('superiorityInput')?.value || '',
+          benefitCustom: document.getElementById('benefitCustomInput')?.value || '',
+          
+          timestamp: new Date().toISOString(),
+          lastModified: Date.now(),
+          name: `Draft_${new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}`,
+          version: '2.0'
+        };
+      },
+      
+      saveDraft: function(manual = false) {
+        try {
+          const data = this.getCurrentData();
+          
+          const hasContent = Object.values(data).some(val => 
+            typeof val === 'string' && val.trim().length > 0 && 
+            !['timestamp', 'lastModified', 'name', 'version'].includes(val)
+          );
+          
+          if (!hasContent && !manual) {
+            return false;
+          }
+          
+          const drafts = this.getAllDrafts();
+          
+          drafts.unshift({
+            ...data,
+            id: Date.now(),
+            name: manual ? `Manual_${new Date().toLocaleTimeString('tr-TR')}` : data.name
+          });
+          
+          if (drafts.length > 10) {
+            drafts.length = 10;
+          }
+          
+          localStorage.setItem(this.storageKey, JSON.stringify(drafts));
+          this.lastSaveTime = Date.now();
+          
+          this.updateDraftIndicator();
+          
+          if (manual) {
+            this.showNotification('Draft kaydedildi', 'success');
+          }
+          
+          return true;
+        } catch (error) {
+          console.error('Draft kaydetme hatası:', error);
+          if (manual) {
+            this.showNotification('Draft kaydedilemedi', 'error');
+          }
+          return false;
+        }
+      },
+      
+      getAllDrafts: function() {
+        try {
+          const saved = localStorage.getItem(this.storageKey);
+          return saved ? JSON.parse(saved) : [];
+        } catch (error) {
+          console.error('Draft\'lar okunamadı:', error);
+          return [];
+        }
+      },
+      
+      hasDrafts: function() {
+        return this.getAllDrafts().length > 0;
+      },
+      
+      updateDraftIndicator: function() {
+        const indicator = document.getElementById('draftIndicator');
+        const loadBtn = document.getElementById('btnLoadDraft');
+        
+        if (!indicator) return;
+        
+        const drafts = this.getAllDrafts();
+        if (drafts.length > 0) {
+          indicator.classList.add('saved');
+          indicator.innerHTML = `💾 ${drafts.length} Draft`;
+          indicator.title = `${drafts.length} kayıtlı draft var. Son kayıt: ${drafts[0]?.timestamp ? new Date(drafts[0].timestamp).toLocaleTimeString('tr-TR') : 'bilinmiyor'}`;
+          
+          indicator.onclick = () => {
+            this.showDraftSelector();
+          };
+          
+          if (loadBtn) loadBtn.style.display = 'inline-block';
+        } else {
+          indicator.classList.remove('saved');
+          indicator.innerHTML = '💾 Draft Yok';
+          indicator.title = 'Henüz draft kaydedilmedi';
+          indicator.onclick = null;
+          
+          if (loadBtn) loadBtn.style.display = 'none';
+        }
+      },
+      
+      showDraftSelector: function() {
+        const drafts = this.getAllDrafts();
+        if (drafts.length === 0) {
+          this.showNotification('Kayıtlı draft bulunamadı', 'info');
+          return;
+        }
+        
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0,0,0,0.5);
+          z-index: 4000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        `;
+        
+        let html = `
+          <div style="
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow: auto;
+            box-shadow: var(--shadow);
+            width: 500px;
+          ">
+            <h3 style="margin-top: 0; margin-bottom: 15px; color: var(--accent);">
+              📂 Kayıtlı Draft'lar
+            </h3>
+            <div style="margin-bottom: 20px; font-size: 13px; color: var(--muted);">
+              Toplam ${drafts.length} draft. En son kaydedilenler üstte.
+            </div>
+        `;
+        
+        drafts.forEach((draft, index) => {
+          const time = new Date(draft.timestamp).toLocaleString('tr-TR', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          
+          const preview = draft.autoCPR?.substring(0, 80) || 
+                         draft.claim_problem?.substring(0, 80) || 
+                         draft.feature?.substring(0, 80) || 
+                         'Boş draft';
+          
+          html += `
+            <div style="
+              border: 1px solid var(--border);
+              border-radius: 10px;
+              padding: 12px;
+              margin-bottom: 10px;
+              cursor: pointer;
+              transition: all 0.2s;
+              background: ${index === 0 ? 'rgba(11, 95, 255, 0.03)' : 'white'};
+            " 
+            onclick="MobileFeatures.DraftSystem.loadDraft(${draft.id}); 
+                     this.parentElement.parentElement.parentElement.remove();
+                     MobileFeatures.showNotification('Draft yüklendi', 'success');"
+            onmouseover="this.style.backgroundColor='var(--soft)'"
+            onmouseout="this.style.backgroundColor='${index === 0 ? 'rgba(11, 95, 255, 0.03)' : 'white'}'">
+              <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">
+                ${draft.name || `Draft ${index + 1}`}
+                ${index === 0 ? '<span style="font-size: 11px; background: var(--ok); color: white; padding: 2px 6px; border-radius: 10px; margin-left: 8px;">EN SON</span>' : ''}
+              </div>
+              <div style="font-size: 11px; color: var(--muted); margin-bottom: 6px;">
+                ${time}
+              </div>
+              <div style="font-size: 12px; color: #666; line-height: 1.4;">
+                ${preview}${preview.length >= 80 ? '...' : ''}
+              </div>
+              <div style="margin-top: 8px; display: flex; gap: 8px; font-size: 11px;">
+                <span style="background: var(--soft); padding: 2px 6px; border-radius: 10px;">
+                  ${draft.claim_problem ? '✔ Claim' : '✗ Claim'}
+                </span>
+                <span style="background: var(--soft); padding: 2px 6px; border-radius: 10px;">
+                  ${draft.feature ? '✔ Feature' : '✗ Feature'}
+                </span>
+                <span style="background: var(--soft); padding: 2px 6px; border-radius: 10px;">
+                  ${draft.autoCPR ? '✔ CPR' : '✗ CPR'}
+                </span>
+              </div>
+            </div>
+          `;
+        });
+        
+        html += `
+          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: space-between;">
+            <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                    class="btn ghost" 
+                    style="padding: 8px 16px;">
+              Kapat
+            </button>
+            <button onclick="localStorage.removeItem('fastcpr_drafts_v2'); 
+                             MobileFeatures.DraftSystem.updateDraftIndicator(); 
+                             this.parentElement.parentElement.parentElement.remove(); 
+                             MobileFeatures.showNotification('Tüm draft\\'lar silindi', 'success');" 
+                    class="btn" 
+                    style="padding: 8px 16px; background: var(--bad);">
+              Tümünü Sil
+            </button>
+          </div>
+        `;
+        
+        html += '</div>';
+        modal.innerHTML = html;
+        document.body.appendChild(modal);
+        
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.remove();
+          }
+        });
+      },
+      
+      showNotification: function(message, type = 'info') {
+        MobileFeatures.showNotification(message, type);
+      }
+    },
+    
+    // 7. MOBİL KLAVYE KISAYOLLARI
+    KeyboardShortcuts: {
+      templates: {
+        claim: [
+          "Hasta tedavisinde zaman kısıtı bulunuyor",
+          "Klinik pratikte sık karşılaşılan bir durum",
+          "Mevcut tedavi seçenekleri yetersiz kalıyor",
+          "Hasta uyumu konusunda zorluk yaşanıyor"
+        ],
+        feature: [
+          "Geniş spektrumlu etkinlik profili",
+          "Uzun yarılanma ömrü ile günde tek doz",
+          "İyi tolere edilebilir yan etki profili",
+          "Pratik kullanım sunan ambalaj tasarımı"
+        ],
+        advantage: [
+          "Benzerlerine göre daha hızlı etki başlangıcı",
+          "Daha iyi güvenlik profili sunar",
+          "Hasta konforunu artıran özellikler",
+          "Klinik etkinliği kanıtlanmış"
+        ],
+        benefit: [
+          "Tedavi sürecini kısaltır",
+          "Hasta uyumunu artırır",
+          "Yaşam kalitesini yükseltir",
+          "Klinik başarı oranını iyileştirir"
+        ],
+        recommendation: [
+          "Klinik pratiğinizde değerlendirir misiniz?",
+          "Hastalarınız için önerir misiniz?",
+          "Tedavi algoritmanıza eklemeyi düşünür müsünüz?",
+          "Deneyimlerinizi paylaşır mısınız?"
+        ]
+      },
+      
+      init: function() {
+        const toolbar = document.getElementById('mobileToolbar');
+        if (toolbar) {
+          toolbar.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+          
+          window.addEventListener('resize', () => {
+            toolbar.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+          });
+          
+          toolbar.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            if (button && button.dataset.action) {
+              this.handleAction(button.dataset.action);
+              button.classList.add('active');
+              setTimeout(() => button.classList.remove('active'), 300);
+            }
+          });
+        }
+        
+        document.querySelectorAll('textarea').forEach(textarea => {
+          textarea.addEventListener('focus', () => {
+            if (window.innerWidth <= 768 && toolbar) {
+              toolbar.style.display = 'flex';
+              setTimeout(() => {
+                toolbar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              }, 100);
+            }
+          });
+        });
+        
+        console.log('✅ Mobil Toolbar + Şablon Sistemi hazır');
+      },
+      
+      handleAction: function(action) {
+        const activeTextarea = document.activeElement;
+        if (!activeTextarea || activeTextarea.tagName !== 'TEXTAREA') {
+          MobileFeatures.showNotification('Önce bir metin alanına tıklayın', 'info');
+          return;
+        }
+        
+        switch(action) {
+          case 'claim':
+          case 'feature':
+          case 'advantage':
+          case 'benefit':
+          case 'recommendation':
+            this.insertTemplate(activeTextarea, action);
+            break;
+            
+          case 'copy':
+            this.copyToClipboard(activeTextarea.value);
+            break;
+            
+          case 'paste':
+            this.pasteFromClipboard(activeTextarea);
+            break;
+            
+          case 'clear':
+            activeTextarea.value = '';
+            activeTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            break;
+        }
+      },
+      
+      insertTemplate: function(textarea, type) {
+        const templates = this.templates[type];
+        if (!templates) return;
+        
+        const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+        const currentValue = textarea.value.trim();
+        const separator = currentValue && !currentValue.endsWith('.') ? '. ' : ' ';
+        textarea.value = currentValue + (currentValue ? separator : '') + randomTemplate;
+        
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        textarea.focus();
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        
+        MobileFeatures.showNotification(`${type} şablonu eklendi`, 'success');
+      },
+      
+      copyToClipboard: function(text) {
+        if (!text.trim()) {
+          MobileFeatures.showNotification('Kopyalanacak metin yok', 'warning');
+          return;
+        }
+        
+        navigator.clipboard.writeText(text).then(() => {
+          MobileFeatures.showNotification('Metin panoya kopyalandı', 'success');
+        }).catch(err => {
+          console.error('Kopyalama hatası:', err);
+          MobileFeatures.showNotification('Kopyalama başarısız', 'error');
+        });
+      },
+      
+      pasteFromClipboard: async function(textarea) {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            const currentValue = textarea.value;
+            const cursorPos = textarea.selectionStart;
+            const newValue = currentValue.substring(0, cursorPos) + text + currentValue.substring(cursorPos);
+            textarea.value = newValue;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            const newCursorPos = cursorPos + text.length;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            
+            MobileFeatures.showNotification('Panodan yapıştırıldı', 'success');
+          }
+        } catch (err) {
+          console.error('Yapıştırma hatası:', err);
+          MobileFeatures.showNotification('Yapıştırma başarısız', 'error');
+        }
+      }
+    },
+    
+    // 8. TOAST BİLDİRİM SİSTEMİ
+    showNotification: function(message, type = 'info') {
+      const area = document.getElementById('mobileNotificationArea');
+      if (!area) return;
+      
+      const notification = document.createElement('div');
+      notification.className = `mobile-notification ${type}`;
+      
+      let icon = 'ℹ️';
+      if (type === 'success') icon = '✅';
+      if (type === 'warning') icon = '⚠️';
+      if (type === 'error') icon = '❌';
+      if (type === 'info') icon = 'ℹ️';
+      
+      notification.innerHTML = `
+        <span class="icon">${icon}</span>
+        <span class="message">${message}</span>
+        <button class="close-btn" aria-label="Kapat">×</button>
+      `;
+      
+      area.appendChild(notification);
+      
+      notification.querySelector('.close-btn').addEventListener('click', () => {
+        this.removeNotification(notification);
+      });
+      
+      setTimeout(() => {
+        this.removeNotification(notification);
+      }, 4000);
+      
+      return notification;
+    },
+    
+    removeNotification: function(notification) {
+      if (!notification || !notification.parentNode) return;
+      
+      notification.style.opacity = '0';
+      notification.style.transform = 'translateX(-50%) translateY(-10px)';
+      notification.style.transition = 'opacity 0.3s, transform 0.3s';
+      
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    },
+    
+    // 9. TÜM MOBİL ÖZELLİKLERİ BAŞLAT
+    init: function() {
+      console.log('📱 TÜM FAZLAR: Tüm sistemler yükleniyor...');
+      
+      // Sırayla başlat
+      this.SpeechToText.init();
+      this.ConnectivityManager.init();
+      this.TextToSpeech.init();
+      this.ClipboardSystem.init();
+      this.PDFReportSystem.init();
+      this.DraftSystem.init();
+      this.KeyboardShortcuts.init();
+      
+      // Başlangıçta toolbar'ı göster/gizle
+      const toolbar = document.getElementById('mobileToolbar');
+      if (toolbar) {
+        toolbar.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+        
+        window.addEventListener('resize', () => {
+          toolbar.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+        });
+      }
+      
+      console.log('✅ TÜM FAZLAR: Tüm sistemler yüklendi!');
+      console.log('🎤 FAZ 4: Gelişmiş sesli giriş aktif');
+      console.log('📡 FAZ 3: Connectivity Manager aktif');
+      console.log('🔊 FAZ 3: Sesli okuma aktif');
+      console.log('📋 FAZ 3: Kopyalama sistemi aktif');
+      console.log('📄 YENİ: Kapsamlı PDF Rapor sistemi aktif');
+      console.log('💾 FAZ 2: Draft sistemi aktif');
+      console.log('⌨️ FAZ 1: Klavye kısayolları aktif');
+      
+      // Hoş geldin mesajı
+      if (window.innerWidth <= 768) {
+        setTimeout(() => {
+          this.showNotification('📱 Tüm sistemler hazır! Sesli giriş, PDF rapor ve tüm özellikler aktif.', 'success');
+        }, 1000);
+      }
+    }
+  };
+  
+  // ============================================
+  // YENİ: TEMEL CPR AKIŞ KONTROL SİSTEMİ
+  // ============================================
+  
+  const CPRFlowControl = {
+    init: function() {
+        this.setupHintSystem();
+        this.setupFlowControl();
+        this.setupClearButtons();
+        this.enableAllFields(); // YENİ EKLENEN SATIR - Tüm alanları aç
+    },
+    
+    // YENİ EKLENEN METOD: TÜM ALANLARI AKTİF ET
+    enableAllFields: function() {
+        // Tüm CPR alanlarını bul
+        const cprTextareas = document.querySelectorAll('.cpr-section-card textarea, .styled-cpr-area');
+        
+        cprTextareas.forEach(textarea => {
+            if (textarea) {
+                textarea.disabled = false;
+                textarea.readOnly = false;
+                textarea.style.backgroundColor = '';
+                textarea.style.color = '';
+                textarea.style.cursor = 'text';
+                textarea.style.opacity = '1';
+                
+                // Orijinal placeholder'ları geri yükle
+                const id = textarea.id;
+                const placeholders = {
+                    'base_claim_problem': 'Klinik problemi yazın...',
+                    'base_claim_effect': 'Bu problemin hasta, hekim veya süreç üzerindeki etkisini yazın...',
+                    'base_feat': 'Örn: Ürün X, günde tek doz kullanım ile hasta uyumunu artırır',
+                    'base_adv': 'Örn: Bu sayede benzer etki gösterenlere göre günde tek doz kullanılır',
+                    'base_ben': 'Örn: Tedavilerini aksatmadan devam ederler, işlerini yapmaktan geri kalmazlar',
+                    'base_rec': 'Örn: Bu tür ataklarda, günde tek doz kullanılan X ile tedaviye bir an önce başlamayı tercih eder misiniz?',
+                    'activist_cpr': 'Stile aktar butonuna basın veya buraya yazın... Aktivist CPR için: hızlı, dinamik, aksiyon odaklı ifadeler kullanın.',
+                    'reflector_cpr': 'Stile aktar butonuna basın veya buraya yazın... Reflektör CPR için: sakin, gözleme dayalı, veri referanslı ifadeler kullanın.',
+                    'theorist_cpr': 'Stile aktar butonuna basın veya buraya yazın... Teorist CPR için: sistematik, kılavuz referanslı ve mekanizma temelli ifadeler kullanın.',
+                    'pragmatist_cpr': 'Stile aktar butonuna basın veya buraya yazın... Pragmatist CPR için: Pratik, uygulanabilir, "nasıl yapılır" odaklı ifadeler kullanın.'
+                };
+                
+                if (placeholders[id]) {
+                    textarea.placeholder = placeholders[id];
+                }
+            }
+        });
+        
+        console.log('✅ Tüm CPR alanları açıldı - Serbest yazım modu aktif');
+    },
+    
+    setupHintSystem: function() {
+        document.querySelectorAll('textarea').forEach(textarea => {
+            const hintId = 'hint_' + textarea.id;
+            const hintBox = document.getElementById(hintId);
+            
+            if (hintBox) {
+                textarea.addEventListener('focus', () => {
+                    hintBox.classList.add('show');
+                });
+                
+                textarea.addEventListener('blur', () => {
+                    hintBox.classList.remove('show');
+                });
+            }
+        });
+    },
+    
+    setupFlowControl: function() {
+        const textareas = [
+            'base_claim_problem', 'base_claim_effect', 
+            'base_feat', 'base_adv', 'base_ben', 'base_rec'
+        ];
+        
+        textareas.forEach(id => {
+            const textarea = document.getElementById(id);
+            if (textarea) {
+                textarea.addEventListener('input', () => {
+                    if (typeof AutoCPRGenerator !== 'undefined') {
+                        AutoCPRGenerator.updateAutoCPR();
+                    }
+                });
+            }
+        });
+    },
+    
+    setupClearButtons: function() {
+        const clearButtons = {
+            'clear_base_claim_problem': 'base_claim_problem',
+            'clear_base_feat': 'base_feat',
+            'clear_base_adv': 'base_adv',
+            'clear_base_ben': 'base_ben',
+            'clear_base_rec': 'base_rec'
+        };
+        
+        Object.entries(clearButtons).forEach(([btnId, textareaId]) => {
+            const btn = document.getElementById(btnId);
+            const textarea = document.getElementById(textareaId);
+            
+            if (btn && textarea) {
+                btn.addEventListener('click', () => {
+                    textarea.value = '';
+                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                    
+                    if (typeof AutoCPRGenerator !== 'undefined') {
+                        AutoCPRGenerator.updateAutoCPR();
+                    }
+                });
+            }
+        });
+    },
+    
+    // BU METODU TAMAMEN SİLEBİLİR veya BOŞ BIRAKABİLİRSİNİZ
+    setupValidation: function() {
+        // Hiçbir şey yapma - tüm alanlar açık kalacak
+        console.log('🔓 Doğrulama sistemi devre dışı - tüm alanlar açık');
+    },
+    
+    // BU METODLARI DA KAPATABİLİRSİNİZ
+    validateAndToggleFields: function() {
+        // Hiçbir şey yapma
+    },
+    
+    validateClaim: function(problemText, effectText) {
+        return true; // Her zaman true döndür
+    },
+    
+    validateMinWords: function(text, minWords) {
+        return true; // Her zaman true döndür
+    },
+    
+    toggleField: function(fieldId, isEnabled, fieldName) {
+        // Hiçbir şey yapma - tüm alanlar açık
+        const textarea = document.getElementById(fieldId);
+        if (textarea) {
+            textarea.disabled = false;
+            textarea.style.backgroundColor = '';
+        }
+    }
+  };
+  
+  // ============================================
+  // MEVCUT SİSTEM KODLARI
+  // ============================================
+  
+  const MedicalTermsDictionary = { 
+    'antibiyotik': ['enfeksiyon', 'bakteri', 'mikrop', 'tedavi'],
+    'analjezik': ['ağrı', 'ağrı kesici', 'rahatlama'],
+    'antiinflamatuar': ['iltihap', 'şişlik', 'kızarıklık'],
+    'antihipertansif': ['tansiyon', 'hipertansiyon', 'kan basıncı'],
+    'antipiretik': ['ateş', 'yüksek ateş', 'ateş düşürücü'],
+    'antiseptik': ['mikrop', 'dezenfektan', 'temizlik'],
+    'bronkodilatör': ['nefes', 'solunum', 'astım'],
+    'diüretik': ['idrar', 'ödem', 'şişlik'],
+    'hipnotik': ['uyku', 'insomnia', 'uykusuzluk'],
+    'kemoterapötik': ['kanser', 'tümör', 'onkolojik'],
+    'kortikosteroid': ['iltihap', 'alerji', 'bağışıklık'],
+    'sedatif': ['sakinleştirici', 'anksiyete', 'stres'],
+    'vitamin': ['takviye', 'destek', 'beslenme']
+  };
+  
+  const UserBehaviorTracker = { 
+    // Mevcut içerik korundu
+  };
+  
+  // ============================
+  // ÜRÜN ODAK & HAZIRLIK (Fener) - GÜNCELLENDİ (BAĞIMSIZ SİSTEM)
+  // ============================
+  const ProductPrep = (function(){
+    const KEY = 'fastcpr_productprep_v2'; // Yeni versiyon
 
-      scoreLine.textContent = `CPR: ${cpr.total}/20 · Stil: ${sty.total}/20`;
-      if (mini) mini.textContent = `CPR: ${cpr.total} · Stil: ${sty.total}`;
+    const QUICK_SUPERIORITY = [
+      'Etkinlik üstünlüğü',
+      'Güvenlilik profili',
+      'Günde tek doz kolaylığı',
+      'Hızlı etki başlangıcı',
+      'Hasta uyumu / devamlılık',
+      'Stabilite / ambalaj avantajı',
+      'Geniş spektrum / kapsayıcılık'
+    ];
 
-      const cLevel = scoreToLevel(cpr.total, 20);
-      const sLevel = scoreToLevel(sty.total, 20);
+    const QUICK_BENEFITS = [
+      'Daha hızlı rahatlama / iyileşme',
+      'Günde tek doz ile kolay kullanım',
+      'Tedaviye uyum ve devamlılık',
+      'Klinik güven ve öngörülebilirlik',
+      'Daha az ziyaret / daha az yük',
+      'Yaşam kalitesi korunur',
+      'Gereksiz antibiyotik değişimi azalır',
+      'Pratik kullanım / uygulama kolaylığı'
+    ];
 
-      fb.innerHTML = `
-        <div class="status" style="margin-bottom:8px;">
-          <span class="badge ${cLevel.cls}">CPR · ${cLevel.label}</span>
-          <span class="badge ${sLevel.cls}">${styleRubrics[styleKey].name} · ${sLevel.label}</span>
-        </div>
-      ` + styleFeedback(styleKey, cpr, sty);
+    let state = {
+      products: [],          // Bağımsız ürün listesi
+      competitors: [],       // Bağımsız rakip listesi
+      activeProduct: '',     // Aktif ürün
+      activeCompetitor: '',  // Aktif rakip (ürünle bağımsız)
+      superiority: '',       // Üstün yön
+      benefits: [],          // Seçili faydalar
+      benefitPool: []        // Eklenen faydalar
+    };
+
+    function load(){
+      try{
+        const raw = localStorage.getItem(KEY);
+        if(raw){
+          const parsed = JSON.parse(raw);
+          if(parsed && typeof parsed === 'object') state = Object.assign(state, parsed);
+        }
+      }catch(e){}
+    }
+
+    function save(){
+      try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+    }
+
+    function titleCaseTR(input){
+      const s = (input || '').trim().replace(/\s+/g,' ');
+      if(!s) return '';
+      return s.split(' ').map(w=>{
+        const first = w.slice(0,1).toLocaleUpperCase('tr-TR');
+        const rest  = w.slice(1).toLocaleLowerCase('tr-TR');
+        return first + rest;
+      }).join(' ');
+    }
+
+    // ÜRÜN FONKSİYONLARI (BAĞIMSIZ)
+    function setActiveProduct(name){
+      state.activeProduct = name;
+      save();
+      render();
+    }
+
+    function addProduct(name){
+      const n = titleCaseTR(name);
+      if(!n) return;
+      if(!state.products.includes(n)) state.products.unshift(n);
+      state.activeProduct = n;
+      save();
+      render();
+    }
+
+    function removeProduct(name){
+      state.products = state.products.filter(p=>p!==name);
+      if(state.activeProduct === name) state.activeProduct = state.products[0] || '';
+      save();
+      render();
+    }
+
+    // RAKİP FONKSİYONLARI (BAĞIMSIZ)
+    function setActiveCompetitor(name){
+      state.activeCompetitor = name;
+      save();
+      renderCompetitors();
+    }
+
+    function addCompetitor(name){
+      const n = titleCaseTR(name);
+      if(!n) return;
+      if(!state.competitors.includes(n)) state.competitors.unshift(n);
+      state.activeCompetitor = n;
+      save();
+      renderCompetitors();
+    }
+
+    function removeCompetitor(name){
+      state.competitors = state.competitors.filter(c=>c!==name);
+      if(state.activeCompetitor === name) state.activeCompetitor = state.competitors[0] || '';
+      save();
+      renderCompetitors();
+    }
+
+    // ÜSTÜN YÖN
+    function setSuperiority(text){
+      state.superiority = (text || '').trim();
+      save();
+    }
+
+    // FAYDA FONKSİYONLARI
+    function toggleBenefit(label){
+      const idx = state.benefits.indexOf(label);
+      if(idx >= 0){
+        state.benefits.splice(idx,1);
+      }else{
+        if(state.benefits.length >= 2){
+          MobileFeatures.showNotification('En fazla 2 fayda seçebilirsiniz.', 'warning');
+          return;
+        }
+        state.benefits.push(label);
+      }
+      save();
+      renderBenefits();
+    }
+
+    function clearBenefits(){
+      state.benefits = [];
+      save();
+      renderBenefits();
+    }
+
+    function normalizeSentence(s){
+      return (s || '')
+        .trim()
+        .replace(/\s+/g,' ')
+        .replace(/^./, c=>c.toUpperCase());
+    }
+
+    function addCustomBenefit(raw){
+      if(!raw) return;
+      const label = normalizeSentence(raw);
+      if(!label) return;
+
+      const exists = state.benefitPool.some(x=>x.toLowerCase() === label.toLowerCase()) || 
+                    QUICK_BENEFITS.some(x=>x.toLowerCase() === label.toLowerCase());
+      if(!exists){
+        state.benefitPool.unshift(label);
+        if(state.benefitPool.length > 30) state.benefitPool = state.benefitPool.slice(0,30);
+      }
+
+      const already = state.benefits.some(x=>x.toLowerCase() === label.toLowerCase());
+      if(!already && state.benefits.length < 2){
+        state.benefits.push(label);
+      }
+
+      save();
+      renderBenefits();
+    }
+
+    function el(id){ return document.getElementById(id); }
+
+    function pill(label, opts){
+      const d = document.createElement('div');
+      d.className = 'pill ' + (opts.className || '');
+      d.textContent = label;
+      if(opts.onClick){
+        d.classList.add('clickable');
+        d.addEventListener('click', opts.onClick);
+      }
+      if(opts.onDblClick){
+        d.addEventListener('dblclick', opts.onDblClick);
+      }
+      return d;
+    }
+
+    // YENİ: KALDIRMALI PILL
+    function pillWithRemove(label, onRemove, isActive = false) {
+      const d = document.createElement('div');
+      d.className = 'pill removable clickable ' + (isActive ? 'active' : '');
+      
+      const textSpan = document.createElement('span');
+      textSpan.textContent = label;
+      textSpan.style.flex = '1';
+      textSpan.style.marginRight = '4px';
+      
+      const removeBtn = document.createElement('span');
+      removeBtn.className = 'x';
+      removeBtn.textContent = '×';
+      removeBtn.title = 'Kaldır';
+      removeBtn.style.cursor = 'pointer';
+      removeBtn.style.fontWeight = 'bold';
+      removeBtn.style.opacity = '0.7';
+      removeBtn.style.marginLeft = '4px';
+      removeBtn.style.padding = '0 2px';
+      removeBtn.style.borderRadius = '50%';
+      removeBtn.style.width = '16px';
+      removeBtn.style.height = '16px';
+      removeBtn.style.display = 'flex';
+      removeBtn.style.alignItems = 'center';
+      removeBtn.style.justifyContent = 'center';
+      removeBtn.style.backgroundColor = 'rgba(0,0,0,0.05)';
+      
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onRemove();
+      });
+      
+      removeBtn.addEventListener('mouseenter', () => {
+        removeBtn.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+        removeBtn.style.opacity = '1';
+      });
+      
+      removeBtn.addEventListener('mouseleave', () => {
+        removeBtn.style.backgroundColor = 'rgba(0,0,0,0.05)';
+        removeBtn.style.opacity = '0.7';
+      });
+      
+      d.appendChild(textSpan);
+      d.appendChild(removeBtn);
+      
+      return d;
+    }
+
+    function pillRemovable(label, onRemove){
+      const d = document.createElement('div');
+      d.className = 'pill clickable removable selected';
+      const t = document.createElement('span');
+      t.textContent = label;
+      const x = document.createElement('span');
+      x.className = 'x';
+      x.textContent = '×';
+      x.title = 'Kaldır';
+      x.addEventListener('click', (e)=>{ e.stopPropagation(); onRemove(); });
+      d.appendChild(t);
+      d.appendChild(x);
+      return d;
+    }
+
+    // BAĞIMSIZ ÜRÜN RENDER
+    function renderProducts(){
+      const wrap = el('productPills');
+      const label = el('activeProductLabel');
+      if(!wrap || !label) return;
+
+      wrap.innerHTML = '';
+      label.textContent = 'Seçilen ürün: ' + (state.activeProduct || '—');
+
+      state.products.forEach(p=>{
+        const d = pillWithRemove(p, 
+          () => removeProduct(p), 
+          p === state.activeProduct
+        );
+        
+        d.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('x')) {
+            setActiveProduct(p);
+          }
+        });
+        
+        wrap.appendChild(d);
+      });
+    }
+
+    // BAĞIMSIZ RAKİP RENDER
+    function renderCompetitors(){
+      const wrap = el('competitorPills');
+      const label = el('activeCompetitorLabel');
+      if(!wrap || !label) return;
+
+      wrap.innerHTML = '';
+      label.textContent = 'Seçilen rakip: ' + (state.activeCompetitor || '—');
+
+      state.competitors.forEach(c=>{
+        const d = pillWithRemove(c, 
+          () => removeCompetitor(c), 
+          c === state.activeCompetitor
+        );
+        
+        d.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('x')) {
+            setActiveCompetitor(c);
+          }
+        });
+        
+        wrap.appendChild(d);
+      });
+    }
+
+    function renderSuperiority(){
+      const wrap = el('superiorityPills');
+      const input = el('superiorityInput');
+      if(!wrap || !input) return;
+
+      wrap.innerHTML = '';
+      QUICK_SUPERIORITY.forEach(s=>{
+        const d = pill(s, {
+          className: 'clickable',
+          onClick: ()=>{
+            input.value = s;
+            setSuperiority(s);
+          }
+        });
+        wrap.appendChild(d);
+      });
+
+      input.value = state.superiority || '';
+      input.addEventListener('input', ()=>setSuperiority(input.value));
+    }
+
+    function renderBenefits(){
+      const opts = el('benefitOptions');
+      const sel = el('benefitSelected');
+      const clearBtn = el('clearBenefitsBtn');
+      if(!opts || !sel) return;
+
+      opts.innerHTML = '';
+      sel.innerHTML = '';
+
+      const selected = state.benefits || [];
+      const pool = Array.from(new Set([
+        ...QUICK_BENEFITS,
+        ...(state.benefitPool || [])
+      ]));
+
+      pool.forEach(b=>{
+        const isSel = selected.includes(b);
+        const limitReached = selected.length >= 2;
+        const d = pill(b, {
+          className: 'clickable ' + (isSel ? 'selected' : '') + ((limitReached && !isSel) ? '' : ''),
+          onClick: ()=>{
+            if(limitReached && !isSel){
+              MobileFeatures.showNotification('En fazla 2 fayda seçebilirsiniz.', 'warning');
+              return;
+            }
+            toggleBenefit(b);
+          }
+        });
+        opts.appendChild(d);
+      });
+
+      selected.forEach(b=>{
+        sel.appendChild(pillRemovable(b, ()=>toggleBenefit(b)));
+      });
+
+      const benefitTextArea = el('benefitTextArea');
+      if(benefitTextArea){
+        benefitTextArea.value = selected.join(' / ');
+        benefitTextArea.readOnly = true;
+      }
+
+      const addBenefitBtn = el('addBenefitBtn');
+      const benefitInput = el('benefitCustomInput');
+      
+      if(addBenefitBtn && benefitInput){
+        addBenefitBtn.addEventListener('click', ()=>{
+          addCustomBenefit(benefitInput.value);
+          benefitInput.value = '';
+          benefitInput.blur();
+        });
+        benefitInput.addEventListener('keydown', (e)=>{
+          if(e.key === 'Enter'){ e.preventDefault(); addBenefitBtn.click(); }
+        });
+      }
+
+      if(clearBtn){
+        clearBtn.disabled = selected.length===0;
+      }
+    }
+
+    function bind(){
+      const addProductBtn = el('addProductBtn');
+      const productInput = el('productNameInput');
+      const addCompetitorBtn = el('addCompetitorBtn');
+      const competitorInput = el('competitorNameInput');
+      const clearBtn = el('clearBenefitsBtn');
+      const addBenefitBtn = el('addBenefitBtn');
+      const benefitInput = el('benefitCustomInput');
+
+      if(addProductBtn && productInput){
+        addProductBtn.addEventListener('click', ()=>{
+          addProduct(productInput.value);
+          productInput.value = '';
+          productInput.blur();
+        });
+        productInput.addEventListener('keydown', (e)=>{
+          if(e.key === 'Enter'){ e.preventDefault(); addProductBtn.click(); }
+        });
+      }
+
+      if(addCompetitorBtn && competitorInput){
+        addCompetitorBtn.addEventListener('click', ()=>{
+          addCompetitor(competitorInput.value);
+          competitorInput.value = '';
+          competitorInput.blur();
+        });
+        competitorInput.addEventListener('keydown', (e)=>{
+          if(e.key === 'Enter'){ e.preventDefault(); addCompetitorBtn.click(); }
+        });
+      }
+
+      if(clearBtn){
+        clearBtn.addEventListener('click', clearBenefits);
+      }
+    }
+
+    function render(){
+      renderProducts();
+      renderCompetitors();
+      renderSuperiority();
+      renderBenefits();
+    }
+
+    function init(){
+      load();
+      bind();
+      if(!state.activeProduct && state.products.length) state.activeProduct = state.products[0];
+      if(!state.activeCompetitor && state.competitors.length) state.activeCompetitor = state.competitors[0];
+      render();
+      
+      console.log('✅ Bağımsız Ürün/Rakip sistemi hazır');
+      console.log('🔓 Ürün ve rakipler bağımsız');
+      console.log('❌ Ürün silince rakipler etkilenmez');
+      console.log('❌ Rakip silince ürünler etkilenmez');
+    }
+
+    return { 
+      init,
+      getState: () => state,
+      addProduct,
+      removeProduct,
+      addCompetitor,
+      removeCompetitor
+    };
+  })();
+
+  // TÜM SİSTEMLERİ BAŞLAT - GÜNCELLENDİ
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 FAST CPR KOÇU - TÜM FAZLAR başlatılıyor...');
+    
+    // 1. Önce Otomatik CPR Üretim Sistemini başlat
+    AutoCPRGenerator.init();
+    
+    // 2. Tüm mobil özellikleri başlat
+    MobileFeatures.init();
+    
+    // 3. Mevcut sistemleri başlat
+    CPRFlowControl.init();
+    
+    try { 
+      ProductPrep.init(); 
+    } catch(e) { 
+      console.warn('ProductPrep init failed', e); 
+    }
+    
+    // 4. Ses butonlarını bağla
+    document.querySelectorAll('.voice-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = btn.getAttribute('data-target');
+        if (targetId && MobileFeatures.SpeechToText) {
+          MobileFeatures.SpeechToText.toggleListening(targetId);
+        }
+      });
     });
+    
+    // 5. Kopyala butonunu bağla
+    const copyBtn = document.getElementById('copyCPR');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        MobileFeatures.ClipboardSystem.copyCPRToClipboard();
+      });
+    }
+    
+    // 6. Sesli Oku butonunu bağla
+    const voiceReadBtn = document.getElementById('voiceReadCPR');
+    if (voiceReadBtn) {
+      voiceReadBtn.addEventListener('click', () => {
+        MobileFeatures.TextToSpeech.readCPR();
+      });
+    }
+    
+    // 7. YENİ TÜM RAPOR PDF BUTONUNU BAĞLA
+    const fullReportBtn = document.getElementById('fullReportPDF');
+    if (fullReportBtn) {
+      fullReportBtn.addEventListener('click', () => {
+        ComprehensivePDFReport.generateFullReport();
+      });
+      
+      // Hover efekti ekle
+      fullReportBtn.addEventListener('mouseenter', () => {
+        if (!fullReportBtn.innerHTML.includes('Oluşturuluyor')) {
+          fullReportBtn.style.background = '#2563eb';
+          fullReportBtn.style.transform = 'scale(1.02)';
+        }
+      });
+      
+      fullReportBtn.addEventListener('mouseleave', () => {
+        if (!fullReportBtn.innerHTML.includes('Oluşturuluyor')) {
+          fullReportBtn.style.background = '#3b82f6';
+          fullReportBtn.style.transform = 'scale(1)';
+        }
+      });
+    }
+    
+    // 8. Hint-box'ları bağla
+    document.querySelectorAll('textarea').forEach(textarea => {
+      const hintId = 'hint_' + textarea.id;
+      const hintBox = document.getElementById(hintId);
+      
+      if (hintBox) {
+        textarea.addEventListener('focus', () => {
+          hintBox.classList.add('show');
+        });
+        
+        textarea.addEventListener('blur', () => {
+          hintBox.classList.remove('show');
+        });
+      }
+    });
+    
+    // 9. Clear butonlarını bağla
+    document.querySelectorAll('[id^="clear_base_"]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const targetId = this.id.replace('clear_', '');
+        const textarea = document.getElementById(targetId);
+        if (textarea) {
+          textarea.value = '';
+          textarea.dispatchEvent(new Event('input'));
+        }
+      });
+    });
+    
+    // 10. EKSTRA GÜVENLİK: TÜM ALANLARI TEKRAR AÇ (güvence için)
+    setTimeout(() => {
+        // Tüm CPR ve stil textarea'larını bul
+        const allTextareas = document.querySelectorAll('.cpr-section-card textarea, .styled-cpr-area');
+        
+        allTextareas.forEach(textarea => {
+            // Her zaman açık ve yazılabilir yap
+            textarea.disabled = false;
+            textarea.readOnly = false;
+            textarea.style.backgroundColor = '';
+            textarea.style.color = '';
+            textarea.style.cursor = 'text';
+            textarea.style.opacity = '1';
+        });
+        
+        console.log('✅ Ekstra güvenlik: Tüm alanlar tekrar kontrol edildi ve açıldı');
+        
+        // Kullanıcıya bildir
+        if (typeof MobileFeatures !== 'undefined' && MobileFeatures.showNotification) {
+            MobileFeatures.showNotification('Tüm CPR alanları açıldı - İstediğiniz sırada yazabilirsiniz', 'success');
+        }
+    }, 2000);
+    
+    console.log('✅ TÜM FAZLAR TAMAMLANDI!');
+    console.log('🎯 FAZ 1: Temel CPR + Otomatik Özet');
+    console.log('💾 FAZ 2: Draft Sistemi');
+    console.log('📡 FAZ 3: Connectivity Manager + Sesli Okuma + Kopyalama');
+    console.log('🎤 FAZ 4: Gelişmiş Sesli Giriş');
+    console.log('📄 YENİ: Kapsamlı Tüm Rapor PDF Sistemi');
+    console.log('🔓 ÖZEL: Tüm alanlar şartsız açık');
+    console.log('🔄 YENİ: Ürün ve rakip sistemleri BAĞIMSIZ');
+    console.log('✅ Ürün eklenmeden rakip eklenebilir');
+    console.log('✅ Rakip eklenmeden ürün eklenebilir');
+    console.log('✅ Ürün silince rakipler kalır');
+    console.log('✅ Rakip silince ürünler kalır');
+    console.log('❌ Kaldırma özelliği aktif');
+    
+    // Başlangıç kontrolü
+    setTimeout(() => {
+      if (!navigator.onLine) {
+        MobileFeatures.showNotification('Çevrimdışı moddasınız. Çalışmalarınız yerelde kaydedilecek.', 'warning');
+      }
+      
+      const drafts = MobileFeatures.DraftSystem.getAllDrafts();
+      if (drafts.length > 0) {
+        console.log(`📊 ${drafts.length} kayıtlı draft bulundu`);
+        MobileFeatures.showNotification(`${drafts.length} kayıtlı draft bulundu. "Draft Listesi" butonundan yükleyebilirsiniz.`, 'info');
+      }
+      
+      // AutoCPR'i başlangıçta güncelle
+      AutoCPRGenerator.updateAutoCPR();
+    }, 500);
   });
 
-  enableStyles(false);
-})();
 </script>
 </body>
 </html>
