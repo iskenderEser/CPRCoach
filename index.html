@@ -4070,27 +4070,43 @@
         });
     },
     
+    // DÜZELTİLDİ: Artık tek tek kutuları değil, otomatik oluşan CPR'ı kopyalıyor
     copyBaseToStyle: function(style) {
-        const baseProblem = document.getElementById('base_claim_problem').value || '';
-        const baseEffect = document.getElementById('base_claim_effect').value || '';
-        const baseFeature = document.getElementById('base_feat').value || '';
-        const baseAdvantage = document.getElementById('base_adv').value || '';
-        const baseBenefit = document.getElementById('base_ben').value || '';
-        const baseRecommendation = document.getElementById('base_rec').value || '';
+        const autoCPRTextarea = document.getElementById('autoCPR');
+        const autoCPR = autoCPRTextarea ? autoCPRTextarea.value.trim() : '';
         
-        let combinedText = '';
-        
-        if (baseProblem) combinedText += `Problem: ${baseProblem}\n`;
-        if (baseEffect) combinedText += `Etki: ${baseEffect}\n`;
-        if (baseFeature) combinedText += `Özellik: ${baseFeature}\n`;
-        if (baseAdvantage) combinedText += `Avantaj: ${baseAdvantage}\n`;
-        if (baseBenefit) combinedText += `Fayda: ${baseBenefit}\n`;
-        if (baseRecommendation) combinedText += `Öneri: ${baseRecommendation}`;
+        if (!autoCPR || autoCPR.length < 10) {
+            MobileFeatures.showNotification('Önce CPR\'ı onaylayın (✅ CPR Onay butonu)', 'warning');
+            return;
+        }
         
         const styleTextarea = document.getElementById(`${style}_cpr`);
         if (styleTextarea) {
-            styleTextarea.value = combinedText;
-            MobileFeatures.showNotification(`Temel CPR ${style} stilinine kopyalandı`, 'success');
+            // Önceki içeriği temizle
+            styleTextarea.value = '';
+            
+            // Otomatik CPR'ı kopyala
+            styleTextarea.value = autoCPR;
+            
+            // Metin alanını güncelle
+            styleTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Başarı mesajı göster
+            const styleNames = {
+                'activist': 'Aktivist',
+                'reflector': 'Reflektör',
+                'theorist': 'Teorist',
+                'pragmatist': 'Pragmatist'
+            };
+            
+            const styleName = styleNames[style] || style;
+            MobileFeatures.showNotification(`✅ Temel CPR "${styleName}" stilinine kopyalandı`, 'success');
+            
+            // İmleci sona getir
+            setTimeout(() => {
+                styleTextarea.focus();
+                styleTextarea.setSelectionRange(autoCPR.length, autoCPR.length);
+            }, 100);
         }
     },
     
